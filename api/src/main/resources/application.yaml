@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: edifiq-api
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/edifiq?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:adm..}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Flyway cuida das migrations — JPA só valida
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        default-requeue-rejected: false
+
+  threads:
+    virtual:
+      enabled: true # Project Loom — virtual threads
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    com.leilao: INFO
+    org.springframework.security: WARN
+
+edifiq:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me-dev-secret-change-me}
+    access-token-ttl: PT24H
+  messaging:
+    order-distribution-exchange: order.distribution.exchange
+    order-distribution-routing-key: order.distribution.requested
+    order-distribution-queue: order.distribution.queue
+    order-distribution-dlx: order.distribution.dlx
+    order-distribution-dlq: order.distribution.dlq
+    order-distribution-dlq-routing-key: order.distribution.failed
