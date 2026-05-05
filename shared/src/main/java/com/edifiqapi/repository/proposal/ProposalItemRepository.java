@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "proposal-items")
-public interface ProposalItemRepository extends JpaRepository<ProposalItem, Long> {
-    List<ProposalItem> findAllByProposal_Id(Long proposalId);
+public interface ProposalItemRepository extends JpaRepository<ProposalItem, String> {
+    List<ProposalItem> findAllByProposal_Id(String proposalId);
 
-    Optional<ProposalItem> findByIdAndProposal_OrderDistribution_Order_Tenant_Id(Long id, Long tenantId);
+    Optional<ProposalItem> findByIdAndProposal_OrderDistribution_Order_Tenant_Id(String id, String tenantId);
 }
+

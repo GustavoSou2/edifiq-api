@@ -1,5 +1,5 @@
 ALTER TABLE order_distributions
-    ADD COLUMN queue_message_id VARCHAR(100) NULL AFTER distributed_at,
+    ADD COLUMN queue_message_id VARCHAR(100) NULL AFTER opened_at,
     ADD COLUMN queued_at TIMESTAMP(6) NULL AFTER queue_message_id,
     ADD COLUMN processing_at TIMESTAMP(6) NULL AFTER queued_at,
     ADD COLUMN sent_at TIMESTAMP(6) NULL AFTER processing_at,

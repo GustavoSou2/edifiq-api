@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "suppliers")
-public interface SupplierRepository extends JpaRepository<Supplier, Long> {
-    List<Supplier> findAllByTenant_Id(Long tenantId);
+public interface SupplierRepository extends JpaRepository<Supplier, String> {
+    List<Supplier> findAllByTenant_Id(String tenantId);
 
-    Optional<Supplier> findByIdAndTenant_Id(Long id, Long tenantId);
+    Optional<Supplier> findByIdAndTenant_Id(String id, String tenantId);
 }
+

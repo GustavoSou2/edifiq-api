@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
@@ -24,6 +25,15 @@ public class User extends BaseEntity {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "full_name", nullable = false, length = 150)
+    private String fullName;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Column(name = "avatar_url", columnDefinition = "text")
+    private String avatarUrl;
+
     @Column(name = "is_active", nullable = false)
     private boolean active;
 
@@ -32,6 +42,22 @@ public class User extends BaseEntity {
 
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    void prePersistUser() {
+        var now = Instant.now();
+        if (fullName == null || fullName.isBlank()) {
+            fullName = email;
+        }
+        createdAt = now;
+        updatedAt = now;
+    }
 
     public Tenant getTenant() {
         return tenant;
@@ -57,6 +83,30 @@ public class User extends BaseEntity {
         this.passwordHash = passwordHash;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -80,5 +130,20 @@ public class User extends BaseEntity {
     public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
-}
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+}

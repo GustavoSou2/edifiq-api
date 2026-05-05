@@ -23,8 +23,8 @@ public class ProposalController {
     }
 
     @PostMapping("/distributions/{distributionId}/proposals")
-    public ProposalResponse submit(@AuthenticationPrincipal Jwt jwt, @PathVariable Long distributionId, @Valid @RequestBody SubmitProposalRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public ProposalResponse submit(@AuthenticationPrincipal Jwt jwt, @PathVariable String distributionId, @Valid @RequestBody SubmitProposalRequest request) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Proposal proposal = orderFlowService.submitProposal(
                 tenantId,
                 distributionId,
@@ -46,16 +46,18 @@ public class ProposalController {
     ) {}
 
     public record SubmitProposalItemRequest(
-            @NotNull Long orderItemId,
+            @NotNull String orderItemId,
             @NotNull BigDecimal unitPrice,
             @NotNull BigDecimal totalPrice,
             @NotNull ProposalItem.Availability availability
     ) {}
 
-    public record ProposalResponse(Long id, Long distributionId, Proposal.Status status) {
+    public record ProposalResponse(String id, String distributionId, Proposal.Status status) {
         static ProposalResponse from(Proposal proposal) {
             return new ProposalResponse(proposal.getId(), proposal.getOrderDistribution().getId(), proposal.getStatus());
         }
     }
 }
+
+
 

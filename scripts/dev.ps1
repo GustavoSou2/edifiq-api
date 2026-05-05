@@ -74,7 +74,7 @@ try {
     $worker = Start-MavenModule -Name "worker" -Module "worker" -LogFile $workerLog
 
     Write-Host ""
-    Write-Host "API: http://localhost:8080/api"
+    Write-Host "API: http://localhost:8081/api"
     Write-Host "RabbitMQ UI: http://localhost:15672"
     Write-Host "Logs:"
     Write-Host "  Get-Content -Wait logs\api.log"

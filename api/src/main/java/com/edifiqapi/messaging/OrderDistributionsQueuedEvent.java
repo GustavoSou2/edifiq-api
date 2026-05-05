@@ -2,4 +2,6 @@ package com.edifiqapi.messaging;
 
 import java.util.List;
 
-public record OrderDistributionsQueuedEvent(List<Long> distributionIds) {}
+public record OrderDistributionsQueuedEvent(List<String> distributionIds) {}
+
+

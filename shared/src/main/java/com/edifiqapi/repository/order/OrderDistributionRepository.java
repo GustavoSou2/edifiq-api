@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "order-distributions")
-public interface OrderDistributionRepository extends JpaRepository<OrderDistribution, Long> {
-    List<OrderDistribution> findAllByOrder_IdAndOrder_Tenant_Id(Long orderId, Long tenantId);
+public interface OrderDistributionRepository extends JpaRepository<OrderDistribution, String> {
+    List<OrderDistribution> findAllByOrder_IdAndOrder_Tenant_Id(String orderId, String tenantId);
 
-    Optional<OrderDistribution> findByIdAndOrder_Tenant_Id(Long id, Long tenantId);
+    Optional<OrderDistribution> findByIdAndOrder_Tenant_Id(String id, String tenantId);
 }
+

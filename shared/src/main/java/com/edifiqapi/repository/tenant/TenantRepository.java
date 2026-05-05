@@ -7,6 +7,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "tenants")
-public interface TenantRepository extends JpaRepository<Tenant, Long> {
+public interface TenantRepository extends JpaRepository<Tenant, String> {
     Optional<Tenant> findBySlug(String slug);
 }
+

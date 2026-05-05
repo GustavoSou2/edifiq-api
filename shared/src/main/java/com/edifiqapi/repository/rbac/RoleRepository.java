@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "roles")
-public interface RoleRepository extends JpaRepository<Role, Long> {
-    List<Role> findAllByTenant_Id(Long tenantId);
+public interface RoleRepository extends JpaRepository<Role, String> {
+    List<Role> findAllByTenant_Id(String tenantId);
 
-    Optional<Role> findByIdAndTenant_Id(Long id, Long tenantId);
+    Optional<Role> findByIdAndTenant_Id(String id, String tenantId);
 }
+

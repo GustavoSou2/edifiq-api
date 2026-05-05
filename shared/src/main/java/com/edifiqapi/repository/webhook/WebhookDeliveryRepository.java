@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "webhook-deliveries")
-public interface WebhookDeliveryRepository extends JpaRepository<WebhookDelivery, Long> {
-    List<WebhookDelivery> findAllByWebhook_Tenant_Id(Long tenantId);
+public interface WebhookDeliveryRepository extends JpaRepository<WebhookDelivery, String> {
+    List<WebhookDelivery> findAllByWebhook_Tenant_Id(String tenantId);
 
-    Optional<WebhookDelivery> findByIdAndWebhook_Tenant_Id(Long id, Long tenantId);
+    Optional<WebhookDelivery> findByIdAndWebhook_Tenant_Id(String id, String tenantId);
 }
+

@@ -23,7 +23,7 @@ public class AuditLogController {
 
     @GetMapping
     public List<AuditLogResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return auditLogRepository.findAllByTenant_IdOrderByCreatedAtDesc(tenantId).stream()
                 .map(a -> new AuditLogResponse(
                         a.getId(),
@@ -37,12 +37,14 @@ public class AuditLogController {
     }
 
     public record AuditLogResponse(
-            Long id,
+            String id,
             String action,
             String entity,
-            Long entityId,
+            String entityId,
             Map<String, Object> payload,
             Instant createdAt
     ) {}
 }
+
+
 

@@ -28,21 +28,21 @@ public class WebhookDeliveryController {
 
     @GetMapping
     public List<WebhookDeliveryResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return webhookDeliveryRepository.findAllByWebhook_Tenant_Id(tenantId).stream().map(WebhookDeliveryResponse::from).toList();
     }
 
     @GetMapping("/{id}")
-    public WebhookDeliveryResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public WebhookDeliveryResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         WebhookDelivery delivery = webhookDeliveryRepository.findByIdAndWebhook_Tenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "webhook delivery not found"));
         return WebhookDeliveryResponse.from(delivery);
     }
 
     public record WebhookDeliveryResponse(
-            Long id,
-            Long webhookId,
+            String id,
+            String webhookId,
             String event,
             Map<String, Object> payload,
             Integer statusCode,
@@ -64,4 +64,6 @@ public class WebhookDeliveryController {
         }
     }
 }
+
+
 

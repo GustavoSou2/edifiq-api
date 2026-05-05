@@ -21,8 +21,8 @@ public class DeliveryController {
     }
 
     @PatchMapping("/{id}")
-    public DeliveryResponse updateStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @Valid @RequestBody UpdateDeliveryRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public DeliveryResponse updateStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpdateDeliveryRequest request) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Delivery delivery = orderFlowService.updateDeliveryStatus(tenantId, id, request.status(), request.trackingCode(), request.proofUrl());
         return DeliveryResponse.from(delivery);
     }
@@ -34,7 +34,7 @@ public class DeliveryController {
     ) {}
 
     public record DeliveryResponse(
-            Long id,
+            String id,
             Delivery.Status status,
             String trackingCode,
             Instant scheduledAt,
@@ -55,4 +55,6 @@ public class DeliveryController {
         }
     }
 }
+
+
 

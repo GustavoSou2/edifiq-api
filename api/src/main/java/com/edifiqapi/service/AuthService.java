@@ -49,6 +49,7 @@ public class AuthService {
         Tenant tenant = new Tenant();
         tenant.setPlan(plan);
         tenant.setSlug(tenantSlug);
+        tenant.setName(tenantSlug);
         tenant.setStatus(Tenant.Status.trial);
         tenant.setTrialEndsAt(Instant.now().plusSeconds(14L * 24 * 3600));
         tenant = tenantRepository.save(tenant);
@@ -56,6 +57,7 @@ public class AuthService {
         User user = new User();
         user.setTenant(tenant);
         user.setEmail(email);
+        user.setFullName(email);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setActive(true);
         user.setEmailVerified(false);
@@ -82,5 +84,7 @@ public class AuthService {
         return new AuthResult(user.getId(), user.getTenant().getId(), token.value(), token.expiresAt());
     }
 
-    public record AuthResult(Long userId, Long tenantId, String accessToken, Instant expiresAt) {}
+    public record AuthResult(String userId, String tenantId, String accessToken, Instant expiresAt) {}
 }
+
+

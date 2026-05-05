@@ -49,8 +49,10 @@ public class AuthController {
             String tokenType,
             String accessToken,
             Instant expiresAt,
-            Long userId,
-            Long tenantId
+            String userId,
+            String tenantId
     ) {}
 }
+
+
 

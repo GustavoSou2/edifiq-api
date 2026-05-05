@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "ratings")
-public interface RatingRepository extends JpaRepository<Rating, Long> {
-    List<Rating> findAllByOrderSelection_Order_Tenant_Id(Long tenantId);
+public interface RatingRepository extends JpaRepository<Rating, String> {
+    List<Rating> findAllByOrderSelection_Order_Tenant_Id(String tenantId);
 
-    Optional<Rating> findByIdAndOrderSelection_Order_Tenant_Id(Long id, Long tenantId);
+    Optional<Rating> findByIdAndOrderSelection_Order_Tenant_Id(String id, String tenantId);
 }
+

@@ -29,20 +29,20 @@ public class WebhookController {
 
     @GetMapping
     public List<WebhookResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return webhookRepository.findAllByTenant_Id(tenantId).stream().map(WebhookResponse::from).toList();
     }
 
     @GetMapping("/{id}")
-    public WebhookResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public WebhookResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         return webhookRepository.findByIdAndTenant_Id(id, tenantId).map(WebhookResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "webhook not found"));
     }
 
     @PostMapping
     public WebhookResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpsertWebhookRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
 
@@ -56,8 +56,8 @@ public class WebhookController {
     }
 
     @PutMapping("/{id}")
-    public WebhookResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @Valid @RequestBody UpsertWebhookRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public WebhookResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpsertWebhookRequest request) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Webhook webhook = webhookRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "webhook not found"));
 
@@ -69,8 +69,8 @@ public class WebhookController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Webhook webhook = webhookRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "webhook not found"));
         webhookRepository.delete(webhook);
@@ -83,10 +83,12 @@ public class WebhookController {
             boolean active
     ) {}
 
-    public record WebhookResponse(Long id, String url, List<String> events, boolean active) {
+    public record WebhookResponse(String id, String url, List<String> events, boolean active) {
         static WebhookResponse from(Webhook webhook) {
             return new WebhookResponse(webhook.getId(), webhook.getUrl(), webhook.getEvents(), webhook.isActive());
         }
     }
 }
+
+
 

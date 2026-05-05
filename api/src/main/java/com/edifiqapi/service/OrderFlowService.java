@@ -83,7 +83,7 @@ public class OrderFlowService {
     }
 
     @Transactional
-    public Order createOrder(long tenantId, long userId, String title, String description, Instant scheduledAt, List<CreateOrderItem> items) {
+    public Order createOrder(String tenantId, String userId, String title, String description, Instant scheduledAt, List<CreateOrderItem> items) {
         Tenant tenant = tenantRepository.findById(tenantId).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
         User user = userRepository.findByIdAndTenant_Id(userId, tenantId).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
 
@@ -110,7 +110,7 @@ public class OrderFlowService {
     }
 
     @Transactional
-    public List<OrderDistribution> publishAndDistribute(long tenantId, long orderId) {
+    public List<OrderDistribution> publishAndDistribute(String tenantId, String orderId) {
 
         Order order = orderRepository.findByIdAndTenant_Id(orderId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "order not found"));
@@ -119,7 +119,7 @@ public class OrderFlowService {
             throw new ResponseStatusException(BAD_REQUEST, "order must be draft to publish");
         }
 
-        order.setStatus(Order.Status.published);
+        order.setStatus(Order.Status.open);
         orderRepository.save(order);
 
         List<Supplier> suppliers = supplierRepository.findAllByTenant_Id(tenantId).stream()
@@ -146,7 +146,7 @@ public class OrderFlowService {
     }
 
     @Transactional
-    public Proposal submitProposal(long tenantId, long distributionId, Proposal.Status status, Integer deliveryEtaHours, String message, List<CreateProposalItem> items) {
+    public Proposal submitProposal(String tenantId, String distributionId, Proposal.Status status, Integer deliveryEtaHours, String message, List<CreateProposalItem> items) {
         OrderDistribution distribution = orderDistributionRepository.findByIdAndOrder_Tenant_Id(distributionId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "distribution not found"));
 
@@ -180,7 +180,7 @@ public class OrderFlowService {
     }
 
     @Transactional
-    public OrderSelection selectProposal(long tenantId, long userId, long orderId, long proposalId) {
+    public OrderSelection selectProposal(String tenantId, String userId, String orderId, String proposalId) {
         Order order = orderRepository.findByIdAndTenant_Id(orderId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "order not found"));
 
@@ -210,14 +210,14 @@ public class OrderFlowService {
         delivery.setStatus(Delivery.Status.scheduled);
         deliveryRepository.save(delivery);
 
-        order.setStatus(Order.Status.closed);
+        order.setStatus(Order.Status.selected);
         orderRepository.save(order);
 
         return selection;
     }
 
     @Transactional
-    public Delivery updateDeliveryStatus(long tenantId, long deliveryId, Delivery.Status status, String trackingCode, String proofUrl) {
+    public Delivery updateDeliveryStatus(String tenantId, String deliveryId, Delivery.Status status, String trackingCode, String proofUrl) {
         Delivery delivery = deliveryRepository.findByIdAndOrderSelection_Order_Tenant_Id(deliveryId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "delivery not found"));
 
@@ -238,7 +238,7 @@ public class OrderFlowService {
     }
 
     @Transactional
-    public Rating createRating(long tenantId, long userId, long selectionId, int score, String comment) {
+    public Rating createRating(String tenantId, String userId, String selectionId, int score, String comment) {
         if (score < 1 || score > 5) {
             throw new ResponseStatusException(BAD_REQUEST, "score must be between 1 and 5");
         }
@@ -263,7 +263,7 @@ public class OrderFlowService {
     public record CreateOrderItem(String name, String unit, BigDecimal quantity, String notes) {}
 
     public record CreateProposalItem(
-            Long orderItemId,
+            String orderItemId,
             BigDecimal unitPrice,
             BigDecimal totalPrice,
             ProposalItem.Availability availability
@@ -283,11 +283,11 @@ public class OrderFlowService {
 
     private List<Supplier> rankSuppliers(Order order, List<Supplier> suppliers) {
 
-        Map<Long, Double> preco = new HashMap<>();
-        Map<Long, Double> prazo = new HashMap<>();
-        Map<Long, Double> resposta = new HashMap<>();
-        Map<Long, Double> reputacao = new HashMap<>();
-        Map<Long, Double> distancia = new HashMap<>();
+        Map<String, Double> preco = new HashMap<>();
+        Map<String, Double> prazo = new HashMap<>();
+        Map<String, Double> resposta = new HashMap<>();
+        Map<String, Double> reputacao = new HashMap<>();
+        Map<String, Double> distancia = new HashMap<>();
 
         double minPreco = preco.values().stream().min(Double::compare).orElse(1.0);
         double maxPreco = preco.values().stream().max(Double::compare).orElse(1.0);
@@ -325,4 +325,6 @@ public class OrderFlowService {
                 .toList();
     }
 }
+
+
 

@@ -33,20 +33,20 @@ public class UserController {
 
     @GetMapping
     public List<UserResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return userRepository.findAllByTenant_Id(tenantId).stream().map(UserResponse::from).toList();
     }
 
     @GetMapping("/{id}")
-    public UserResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public UserResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         return userRepository.findByIdAndTenant_Id(id, tenantId).map(UserResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
     }
 
     @PostMapping
     public UserResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateUserRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
 
@@ -61,8 +61,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public UserResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpdateUserRequest request) {
+        String tenantId = JwtClaims.tenantId(jwt);
         User user = userRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
         if (request.active() != null) {
@@ -75,9 +75,11 @@ public class UserController {
 
     public record UpdateUserRequest(Boolean active) {}
 
-    public record UserResponse(Long id, String email, boolean active, boolean emailVerified, Instant lastLoginAt) {
+    public record UserResponse(String id, String email, boolean active, boolean emailVerified, Instant lastLoginAt) {
         static UserResponse from(User user) {
             return new UserResponse(user.getId(), user.getEmail(), user.isActive(), user.isEmailVerified(), user.getLastLoginAt());
         }
     }
 }
+
+

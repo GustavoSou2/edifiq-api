@@ -32,14 +32,14 @@ public class UserRoleController {
 
     @GetMapping
     public List<UserRoleResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return userRoleRepository.findAllByUser_Tenant_Id(tenantId).stream().map(UserRoleResponse::from).toList();
     }
 
     @PostMapping
     public UserRoleResponse grant(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody GrantUserRoleRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
-        long grantedById = JwtClaims.userId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
+        String grantedById = JwtClaims.userId(jwt);
 
         var user = userRepository.findByIdAndTenant_Id(request.userId(), tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
@@ -57,16 +57,16 @@ public class UserRoleController {
     }
 
     @DeleteMapping("/{id}")
-    public void revoke(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public void revoke(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         UserRole userRole = userRoleRepository.findByIdAndUser_Tenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user role not found"));
         userRoleRepository.delete(userRole);
     }
 
-    public record GrantUserRoleRequest(@NotNull Long userId, @NotNull Long roleId) {}
+    public record GrantUserRoleRequest(@NotNull String userId, @NotNull String roleId) {}
 
-    public record UserRoleResponse(Long id, Long userId, Long roleId, Long grantedBy, Instant grantedAt) {
+    public record UserRoleResponse(String id, String userId, String roleId, String grantedBy, Instant grantedAt) {
         static UserRoleResponse from(UserRole userRole) {
             return new UserRoleResponse(
                     userRole.getId(),
@@ -78,4 +78,6 @@ public class UserRoleController {
         }
     }
 }
+
+
 

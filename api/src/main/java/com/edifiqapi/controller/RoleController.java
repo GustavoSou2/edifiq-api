@@ -30,20 +30,20 @@ public class RoleController {
 
     @GetMapping
     public List<RoleResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return roleRepository.findAllByTenant_Id(tenantId).stream().map(RoleResponse::from).toList();
     }
 
     @GetMapping("/{id}")
-    public RoleResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public RoleResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         return roleRepository.findByIdAndTenant_Id(id, tenantId).map(RoleResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "role not found"));
     }
 
     @PostMapping
     public RoleResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpsertRoleRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
 
@@ -56,8 +56,8 @@ public class RoleController {
     }
 
     @PutMapping("/{id}")
-    public RoleResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @Valid @RequestBody UpsertRoleRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public RoleResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpsertRoleRequest request) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Role role = roleRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "role not found"));
         if (role.isSystem()) {
@@ -69,8 +69,8 @@ public class RoleController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Role role = roleRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "role not found"));
         if (role.isSystem()) {
@@ -81,10 +81,12 @@ public class RoleController {
 
     public record UpsertRoleRequest(@NotBlank String name, @NotNull List<String> permissions) {}
 
-    public record RoleResponse(Long id, String name, List<String> permissions, boolean system) {
+    public record RoleResponse(String id, String name, List<String> permissions, boolean system) {
         static RoleResponse from(Role role) {
             return new RoleResponse(role.getId(), role.getName(), role.getPermissions(), role.isSystem());
         }
     }
 }
+
+
 

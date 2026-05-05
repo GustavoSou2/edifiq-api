@@ -1,7 +1,8 @@
-INSERT INTO tenants (plan_id, slug, status, settings, trial_ends_at)
+INSERT INTO tenants (plan_id, slug, name, status, settings, trial_ends_at)
 SELECT
     p.id,
     'edifiq-demo',
+    'Edifiq Demo',
     'active',
     JSON_OBJECT('companyName', 'Edifiq Demo', 'currency', 'BRL'),
     DATE_ADD(CURRENT_TIMESTAMP(6), INTERVAL 30 DAY)
@@ -13,11 +14,12 @@ WHERE p.name = 'starter'
       WHERE t.slug = 'edifiq-demo'
   );
 
-INSERT INTO users (tenant_id, email, password_hash, is_active, email_verified, last_login_at)
+INSERT INTO users (tenant_id, email, password_hash, full_name, is_active, email_verified, last_login_at)
 SELECT
     t.id,
     'admin@edifiq.local',
     '$2a$10$yXCqfbo6PhsiXlpqHrlujOkxqL6ugsZldCBPwdR6SFxRoECQqJlFi',
+    'Administrador Demo',
     TRUE,
     TRUE,
     NULL
@@ -30,11 +32,12 @@ WHERE t.slug = 'edifiq-demo'
         AND u.email = 'admin@edifiq.local'
   );
 
-INSERT INTO users (tenant_id, email, password_hash, is_active, email_verified, last_login_at)
+INSERT INTO users (tenant_id, email, password_hash, full_name, is_active, email_verified, last_login_at)
 SELECT
     t.id,
     'buyer@edifiq.local',
     '$2a$10$yXCqfbo6PhsiXlpqHrlujOkxqL6ugsZldCBPwdR6SFxRoECQqJlFi',
+    'Comprador Demo',
     TRUE,
     TRUE,
     NULL

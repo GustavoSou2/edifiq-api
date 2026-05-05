@@ -22,8 +22,8 @@ public class MeController {
 
     @GetMapping
     public MeResponse me(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
-        long userId = JwtClaims.userId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
+        String userId = JwtClaims.userId(jwt);
 
         var user = userRepository.findByIdAndTenant_Id(userId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
@@ -31,6 +31,8 @@ public class MeController {
         return new MeResponse(user.getId(), user.getEmail(), user.getTenant().getId(), user.getTenant().getSlug());
     }
 
-    public record MeResponse(Long userId, String email, Long tenantId, String tenantSlug) {}
+    public record MeResponse(String userId, String email, String tenantId, String tenantSlug) {}
 }
+
+
 

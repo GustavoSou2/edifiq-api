@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate # Flyway cuida das migrations — JPA só valida
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
@@ -39,7 +39,7 @@ spring:
       enabled: true # Project Loom — virtual threads
 
 server:
-  port: 8080
+  port: 8081
   servlet:
     context-path: /api
 

@@ -26,13 +26,13 @@ public class PlanController {
     }
 
     @GetMapping("/{id}")
-    public PlanResponse get(@PathVariable Long id) {
+    public PlanResponse get(@PathVariable String id) {
         return planRepository.findById(id).map(PlanResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "plan not found"));
     }
 
     @PutMapping("/{id}")
-    public PlanResponse update(@PathVariable Long id, @Valid @RequestBody UpsertPlanRequest request) {
+    public PlanResponse update(@PathVariable String id, @Valid @RequestBody UpsertPlanRequest request) {
         var plan = planRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "plan not found"));
         plan.setName(request.name());
@@ -56,7 +56,7 @@ public class PlanController {
     ) {}
 
     public record PlanResponse(
-            Long id,
+            String id,
             String name,
             int maxUsers,
             int maxSuppliers,
@@ -79,4 +79,6 @@ public class PlanController {
         }
     }
 }
+
+
 

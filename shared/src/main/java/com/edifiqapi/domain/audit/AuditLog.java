@@ -8,10 +8,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.Instant;
 import java.util.Map;
 
 @Entity
@@ -25,24 +27,34 @@ public class AuditLog extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 80)
     private String action;
 
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 60)
     private String entity;
 
-    @Column(name = "entity_id")
-    private Long entityId;
+    @Column(name = "entity_id", length = 36)
+    private String entityId;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column
+    @Column(nullable = false)
     private Map<String, Object> payload;
 
-    @Column(name = "ip_address", length = 64)
+    @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Column(name = "user_agent", length = 512)
+    @Column(name = "user_agent", columnDefinition = "text")
     private String userAgent;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    void prePersistAuditLog() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 
     public Tenant getTenant() {
         return tenant;
@@ -76,11 +88,11 @@ public class AuditLog extends BaseEntity {
         this.entity = entity;
     }
 
-    public Long getEntityId() {
+    public String getEntityId() {
         return entityId;
     }
 
-    public void setEntityId(Long entityId) {
+    public void setEntityId(String entityId) {
         this.entityId = entityId;
     }
 
@@ -106,5 +118,13 @@ public class AuditLog extends BaseEntity {
 
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

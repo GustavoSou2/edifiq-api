@@ -29,20 +29,20 @@ public class SupplierController {
 
     @GetMapping
     public List<SupplierResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return supplierRepository.findAllByTenant_Id(tenantId).stream().map(SupplierResponse::from).toList();
     }
 
     @GetMapping("/{id}")
-    public SupplierResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public SupplierResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         return supplierRepository.findByIdAndTenant_Id(id, tenantId).map(SupplierResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
     }
 
     @PostMapping
     public SupplierResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpsertSupplierRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
 
@@ -61,8 +61,8 @@ public class SupplierController {
     }
 
     @PutMapping("/{id}")
-    public SupplierResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @Valid @RequestBody UpsertSupplierRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public SupplierResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpsertSupplierRequest request) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Supplier supplier = supplierRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
 
@@ -78,8 +78,8 @@ public class SupplierController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         Supplier supplier = supplierRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
         supplierRepository.delete(supplier);
@@ -97,7 +97,7 @@ public class SupplierController {
     ) {}
 
     public record SupplierResponse(
-            Long id,
+            String id,
             String name,
             String email,
             String phone,
@@ -124,4 +124,6 @@ public class SupplierController {
         }
     }
 }
+
+
 

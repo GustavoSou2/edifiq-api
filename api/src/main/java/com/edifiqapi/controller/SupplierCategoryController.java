@@ -35,7 +35,7 @@ public class SupplierCategoryController {
 
     @GetMapping
     public List<SupplierCategoryResponse> list(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         return supplierCategoryRepository.findAllBySupplier_Tenant_Id(tenantId).stream()
                 .map(SupplierCategoryResponse::from)
                 .toList();
@@ -43,7 +43,7 @@ public class SupplierCategoryController {
 
     @PostMapping
     public SupplierCategoryResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateSupplierCategoryRequest request) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         var supplier = supplierRepository.findByIdAndTenant_Id(request.supplierId(), tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
         var category = categoryRepository.findByIdAndTenant_Id(request.categoryId(), tenantId)
@@ -56,19 +56,21 @@ public class SupplierCategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-        long tenantId = JwtClaims.tenantId(jwt);
+    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
         SupplierCategory sc = supplierCategoryRepository.findByIdAndSupplier_Tenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier category not found"));
         supplierCategoryRepository.delete(sc);
     }
 
-    public record CreateSupplierCategoryRequest(@NotNull Long supplierId, @NotNull Long categoryId) {}
+    public record CreateSupplierCategoryRequest(@NotNull String supplierId, @NotNull String categoryId) {}
 
-    public record SupplierCategoryResponse(Long id, Long supplierId, Long categoryId) {
+    public record SupplierCategoryResponse(String id, String supplierId, String categoryId) {
         static SupplierCategoryResponse from(SupplierCategory sc) {
             return new SupplierCategoryResponse(sc.getId(), sc.getSupplier().getId(), sc.getCategory().getId());
         }
     }
 }
+
+
 

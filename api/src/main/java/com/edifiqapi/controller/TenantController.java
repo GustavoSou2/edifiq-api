@@ -22,12 +22,14 @@ public class TenantController {
 
     @GetMapping("/me")
     public TenantResponse me(@AuthenticationPrincipal Jwt jwt) {
-        long tenantId = JwtClaims.tenantId(jwt);
+        String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
         return new TenantResponse(tenant.getId(), tenant.getSlug(), tenant.getStatus().name(), tenant.getTrialEndsAt());
     }
 
-    public record TenantResponse(Long id, String slug, String status, java.time.Instant trialEndsAt) {}
+    public record TenantResponse(String id, String slug, String status, java.time.Instant trialEndsAt) {}
 }
+
+
 

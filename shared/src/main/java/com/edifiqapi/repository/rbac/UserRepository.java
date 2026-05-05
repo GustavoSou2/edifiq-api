@@ -8,10 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "users")
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByTenant_SlugAndEmail(String tenantSlug, String email);
 
-    List<User> findAllByTenant_Id(Long tenantId);
+    List<User> findAllByTenant_Id(String tenantId);
 
-    Optional<User> findByIdAndTenant_Id(Long id, Long tenantId);
+    Optional<User> findByIdAndTenant_Id(String id, String tenantId);
 }
+

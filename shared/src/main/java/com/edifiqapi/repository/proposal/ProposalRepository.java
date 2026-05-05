@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "proposals")
-public interface ProposalRepository extends JpaRepository<Proposal, Long> {
-    List<Proposal> findAllByOrderDistribution_Order_IdAndOrderDistribution_Order_Tenant_Id(Long orderId, Long tenantId);
+public interface ProposalRepository extends JpaRepository<Proposal, String> {
+    List<Proposal> findAllByOrderDistribution_Order_IdAndOrderDistribution_Order_Tenant_Id(String orderId, String tenantId);
 
-    Optional<Proposal> findByIdAndOrderDistribution_Order_Tenant_Id(Long id, Long tenantId);
+    Optional<Proposal> findByIdAndOrderDistribution_Order_Tenant_Id(String id, String tenantId);
 }
+

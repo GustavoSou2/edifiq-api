@@ -8,10 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "supplier-categories")
-public interface SupplierCategoryRepository extends JpaRepository<SupplierCategory, Long> {
-    List<SupplierCategory> findAllBySupplier_Tenant_Id(Long tenantId);
+public interface SupplierCategoryRepository extends JpaRepository<SupplierCategory, String> {
+    List<SupplierCategory> findAllBySupplier_Tenant_Id(String tenantId);
 
-    List<SupplierCategory> findAllBySupplier_IdAndSupplier_Tenant_Id(Long supplierId, Long tenantId);
+    List<SupplierCategory> findAllBySupplier_IdAndSupplier_Tenant_Id(String supplierId, String tenantId);
 
-    Optional<SupplierCategory> findByIdAndSupplier_Tenant_Id(Long id, Long tenantId);
+    Optional<SupplierCategory> findByIdAndSupplier_Tenant_Id(String id, String tenantId);
 }
+

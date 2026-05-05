@@ -7,8 +7,9 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.Optional;
 
 @RepositoryRestResource(path = "deliveries")
-public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
-    Optional<Delivery> findByIdAndOrderSelection_Order_Tenant_Id(Long id, Long tenantId);
+public interface DeliveryRepository extends JpaRepository<Delivery, String> {
+    Optional<Delivery> findByIdAndOrderSelection_Order_Tenant_Id(String id, String tenantId);
 
-    Optional<Delivery> findByOrderSelection_IdAndOrderSelection_Order_Tenant_Id(Long selectionId, Long tenantId);
+    Optional<Delivery> findByOrderSelection_IdAndOrderSelection_Order_Tenant_Id(String selectionId, String tenantId);
 }
+

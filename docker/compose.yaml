@@ -4,10 +4,10 @@ services:
   api:
     build:
       context: ..
-      dockerfile: api/Dockerfile
+      dockerfile: docker/api/Dockerfile
     container_name: edifiq-api
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/edifiq
       SPRING_DATASOURCE_USERNAME: root
@@ -30,7 +30,7 @@ services:
   worker-distribution:
     build:
       context: ..
-      dockerfile: worker/Dockerfile
+      dockerfile: docker/worker/Dockerfile
     container_name: edifiq-worker-distribution
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/edifiq

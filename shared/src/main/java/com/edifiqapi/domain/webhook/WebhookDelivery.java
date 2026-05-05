@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -20,7 +21,7 @@ public class WebhookDelivery extends BaseEntity {
     @JoinColumn(name = "webhook_id", nullable = false)
     private Webhook webhook;
 
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 80)
     private String event;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -35,6 +36,16 @@ public class WebhookDelivery extends BaseEntity {
 
     @Column(name = "delivered_at")
     private Instant deliveredAt;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    void prePersistWebhookDelivery() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 
     public Webhook getWebhook() {
         return webhook;
@@ -82,5 +93,13 @@ public class WebhookDelivery extends BaseEntity {
 
     public void setDeliveredAt(Instant deliveredAt) {
         this.deliveredAt = deliveredAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

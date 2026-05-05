@@ -10,18 +10,26 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "orders")
 public class Order extends BaseEntity {
     public enum Status {
         draft,
-        published,
-        closed,
-        cancelled
+        open,
+        in_auction,
+        selected,
+        confirmed,
+        cancelled,
+        expired
     }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -32,18 +40,77 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
-    @Column(nullable = false)
-    private String title;
-
-    @Column(columnDefinition = "text")
-    private String description;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private Status status;
 
-    @Column(name = "scheduled_at")
-    private Instant scheduledAt;
+    @Column(name = "is_urgent", nullable = false)
+    private boolean urgent;
+
+    @Column(name = "delivery_address", columnDefinition = "text", nullable = false)
+    private String deliveryAddress;
+
+    @Column(name = "delivery_city", length = 100)
+    private String deliveryCity;
+
+    @Column(name = "delivery_state", length = 2)
+    private String deliveryState;
+
+    @Column(name = "delivery_lat")
+    private Double deliveryLat;
+
+    @Column(name = "delivery_lng")
+    private Double deliveryLng;
+
+    @Column(name = "max_suppliers", nullable = false)
+    private int maxSuppliers;
+
+    @Column(name = "auction_duration_min", nullable = false)
+    private int auctionDurationMin;
+
+    @Column(name = "expires_at")
+    private Instant expiresAt;
+
+    @Column(name = "published_at")
+    private Instant publishedAt;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(columnDefinition = "text")
+    private String notes;
+
+    @Column(name = "reference_code", length = 50)
+    private String referenceCode;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false)
+    private Map<String, Object> metadata;
+
+    @PrePersist
+    void prePersistOrder() {
+        var now = Instant.now();
+        if (status == null) {
+            status = Status.draft;
+        }
+        if (deliveryAddress == null || deliveryAddress.isBlank()) {
+            deliveryAddress = "A definir";
+        }
+        if (maxSuppliers == 0) {
+            maxSuppliers = 10;
+        }
+        if (auctionDurationMin == 0) {
+            auctionDurationMin = 60;
+        }
+        if (metadata == null) {
+            metadata = new HashMap<>();
+        }
+        createdAt = now;
+        updatedAt = now;
+    }
 
     public Tenant getTenant() {
         return tenant;
@@ -61,22 +128,6 @@ public class Order extends BaseEntity {
         this.createdBy = createdBy;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public Status getStatus() {
         return status;
     }
@@ -85,12 +136,147 @@ public class Order extends BaseEntity {
         this.status = status;
     }
 
+    public boolean isUrgent() {
+        return urgent;
+    }
+
+    public void setUrgent(boolean urgent) {
+        this.urgent = urgent;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public String getDeliveryCity() {
+        return deliveryCity;
+    }
+
+    public void setDeliveryCity(String deliveryCity) {
+        this.deliveryCity = deliveryCity;
+    }
+
+    public String getDeliveryState() {
+        return deliveryState;
+    }
+
+    public void setDeliveryState(String deliveryState) {
+        this.deliveryState = deliveryState;
+    }
+
+    public Double getDeliveryLat() {
+        return deliveryLat;
+    }
+
+    public void setDeliveryLat(Double deliveryLat) {
+        this.deliveryLat = deliveryLat;
+    }
+
+    public Double getDeliveryLng() {
+        return deliveryLng;
+    }
+
+    public void setDeliveryLng(Double deliveryLng) {
+        this.deliveryLng = deliveryLng;
+    }
+
+    public int getMaxSuppliers() {
+        return maxSuppliers;
+    }
+
+    public void setMaxSuppliers(int maxSuppliers) {
+        this.maxSuppliers = maxSuppliers;
+    }
+
+    public int getAuctionDurationMin() {
+        return auctionDurationMin;
+    }
+
+    public void setAuctionDurationMin(int auctionDurationMin) {
+        this.auctionDurationMin = auctionDurationMin;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public Instant getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(Instant publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getReferenceCode() {
+        return referenceCode;
+    }
+
+    public void setReferenceCode(String referenceCode) {
+        this.referenceCode = referenceCode;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getTitle() {
+        return referenceCode;
+    }
+
+    public void setTitle(String title) {
+        this.referenceCode = title;
+    }
+
+    public String getDescription() {
+        return notes;
+    }
+
+    public void setDescription(String description) {
+        this.notes = description;
+    }
+
     public Instant getScheduledAt() {
-        return scheduledAt;
+        return expiresAt;
     }
 
     public void setScheduledAt(Instant scheduledAt) {
-        this.scheduledAt = scheduledAt;
+        this.expiresAt = scheduledAt;
     }
 }
-

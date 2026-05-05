@@ -18,7 +18,7 @@ public class AuditLogService {
     }
 
     @Transactional
-    public void log(Tenant tenant, User user, String action, String entity, Long entityId, Map<String, Object> payload) {
+    public void log(Tenant tenant, User user, String action, String entity, String entityId, Map<String, Object> payload) {
         AuditLog auditLog = new AuditLog();
         auditLog.setTenant(tenant);
         auditLog.setUser(user);
@@ -29,4 +29,6 @@ public class AuditLogService {
         auditLogRepository.save(auditLog);
     }
 }
+
+
 
