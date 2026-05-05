@@ -3,7 +3,8 @@ version: '3.9'
 services:
   api:
     build:
-      context: ./api
+      context: ..
+      dockerfile: api/Dockerfile
     container_name: edifiq-api
     ports:
       - "8080:8080"
@@ -28,7 +29,8 @@ services:
 
   worker-distribution:
     build:
-      context: ./worker
+      context: ..
+      dockerfile: worker/Dockerfile
     container_name: edifiq-worker-distribution
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/edifiq

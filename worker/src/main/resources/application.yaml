@@ -1,6 +1,9 @@
 spring:
   application:
-    name: edifiq-api
+    name: edifiq-worker
+
+  main:
+    web-application-type: none
 
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/edifiq?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
@@ -21,7 +24,7 @@ spring:
         format_sql: true
 
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
 
@@ -38,20 +41,12 @@ spring:
     virtual:
       enabled: true # Project Loom — virtual threads
 
-server:
-  port: 8080
-  servlet:
-    context-path: /api
-
 logging:
   level:
-    com.leilao: INFO
+    com.edifiqapi: INFO
     org.springframework.security: WARN
 
 edifiq:
-  jwt:
-    secret: ${JWT_SECRET:dev-secret-change-me-dev-secret-change-me}
-    access-token-ttl: PT24H
   messaging:
     order-distribution-exchange: order.distribution.exchange
     order-distribution-routing-key: order.distribution.requested

@@ -19,3 +19,10 @@ edifiq:
   jwt:
     secret: test-secret-please-change-test-only-test-secret-32bytes
     access-token-ttl: PT1H
+  messaging:
+    order-distribution-exchange: order.distribution.exchange.test
+    order-distribution-routing-key: order.distribution.requested.test
+    order-distribution-queue: order.distribution.queue.test
+    order-distribution-dlx: order.distribution.dlx.test
+    order-distribution-dlq: order.distribution.dlq.test
+    order-distribution-dlq-routing-key: order.distribution.failed.test
