@@ -1,5 +1,6 @@
 package com.edifiqapi.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,9 +24,9 @@ public class JwtConfig {
     }
 
     @Bean
-    JwtEncoder jwtEncoder(JwtProperties jwtProperties) {
-        SecretKey secretKey = new SecretKeySpec(jwtProperties.secret().getBytes(), "HmacSHA256");
-        return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
+    public JwtEncoder jwtEncoder(JwtProperties jwtProperties) {
+        SecretKeySpec key = new SecretKeySpec(jwtProperties.secret().getBytes(), "HmacSHA256");
+        return new NimbusJwtEncoder(new ImmutableSecret<>(key));
     }
 
     @Bean

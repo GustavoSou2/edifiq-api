@@ -1,5 +1,6 @@
 package com.edifiqapi.controller;
 
+import com.edifiqapi.domain.rbac.User;
 import com.edifiqapi.repository.rbac.UserRepository;
 import com.edifiqapi.security.JwtClaims;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -28,10 +29,10 @@ public class MeController {
         var user = userRepository.findByIdAndTenant_Id(userId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
 
-        return new MeResponse(user.getId(), user.getEmail(), user.getTenant().getId(), user.getTenant().getSlug());
+        return new MeResponse(user, user.getEmail(), user.getTenant().getId(), user.getTenant().getSlug());
     }
 
-    public record MeResponse(String userId, String email, String tenantId, String tenantSlug) {}
+    public record MeResponse(User user, String email, String tenantId, String tenantSlug) {}
 }
 
 

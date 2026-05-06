@@ -2,6 +2,8 @@ package com.edifiqapi.service;
 
 import com.edifiqapi.config.JwtProperties;
 import com.edifiqapi.domain.rbac.User;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -32,11 +34,17 @@ public class JwtTokenService {
                 .claim("email", user.getEmail())
                 .build();
 
-        String tokenValue = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+
+        String tokenValue = jwtEncoder.encode(
+                JwtEncoderParameters.from(header, claims)
+        ).getTokenValue();
         return new Token(tokenValue, expiresAt);
     }
 
     public record Token(String value, Instant expiresAt) {}
+
+
 }
 
 
