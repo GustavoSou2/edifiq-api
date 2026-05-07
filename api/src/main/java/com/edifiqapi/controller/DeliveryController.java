@@ -3,6 +3,7 @@ package com.edifiqapi.controller;
 import com.edifiqapi.domain.delivery.Delivery;
 import com.edifiqapi.security.JwtClaims;
 import com.edifiqapi.service.OrderFlowService;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,10 +22,14 @@ public class DeliveryController {
     }
 
     @PatchMapping("/{id}")
-    public DeliveryResponse updateStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpdateDeliveryRequest request) {
+    public ApiResponse<DeliveryResponse> updateStatus(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id,
+            @Valid @RequestBody UpdateDeliveryRequest request
+    ) {
         String tenantId = JwtClaims.tenantId(jwt);
         Delivery delivery = orderFlowService.updateDeliveryStatus(tenantId, id, request.status(), request.trackingCode(), request.proofUrl());
-        return DeliveryResponse.from(delivery);
+        return ApiResponse.of(DeliveryResponse.from(delivery));
     }
 
     public record UpdateDeliveryRequest(
@@ -55,6 +60,3 @@ public class DeliveryController {
         }
     }
 }
-
-
-

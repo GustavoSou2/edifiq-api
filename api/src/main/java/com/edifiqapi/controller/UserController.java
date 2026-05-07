@@ -4,6 +4,7 @@ import com.edifiqapi.domain.rbac.User;
 import com.edifiqapi.repository.rbac.UserRepository;
 import com.edifiqapi.repository.tenant.TenantRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -32,20 +33,20 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<UserResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return userRepository.findAllByTenant_Id(tenantId).stream().map(UserResponse::from).toList();
+        return ApiResponse.of(userRepository.findAllByTenant_Id(tenantId).stream().map(UserResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public UserResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<UserResponse> get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return userRepository.findByIdAndTenant_Id(id, tenantId).map(UserResponse::from)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
+        return ApiResponse.of(userRepository.findByIdAndTenant_Id(id, tenantId).map(UserResponse::from)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found")));
     }
 
     @PostMapping
-    public UserResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateUserRequest request) {
+    public ApiResponse<UserResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateUserRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
@@ -57,18 +58,18 @@ public class UserController {
         user.setActive(true);
         user.setEmailVerified(false);
         user.setLastLoginAt(null);
-        return UserResponse.from(userRepository.save(user));
+        return ApiResponse.of(UserResponse.from(userRepository.save(user)));
     }
 
     @PatchMapping("/{id}")
-    public UserResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpdateUserRequest request) {
+    public ApiResponse<UserResponse> update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpdateUserRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         User user = userRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
         if (request.active() != null) {
             user.setActive(request.active());
         }
-        return UserResponse.from(userRepository.save(user));
+        return ApiResponse.of(UserResponse.from(userRepository.save(user)));
     }
 
     public record CreateUserRequest(@Email @NotBlank String email, @NotBlank String password) {}
@@ -81,5 +82,3 @@ public class UserController {
         }
     }
 }
-
-

@@ -13,6 +13,7 @@ import com.edifiqapi.domain.proposal.ProposalItem;
 import com.edifiqapi.domain.rbac.User;
 import com.edifiqapi.domain.supplier.Supplier;
 import com.edifiqapi.domain.tenant.Tenant;
+import com.edifiqapi.repository.catalog.CategoryRepository;
 import com.edifiqapi.repository.delivery.DeliveryRepository;
 import com.edifiqapi.repository.delivery.RatingRepository;
 import com.edifiqapi.repository.order.OrderDistributionRepository;
@@ -44,6 +45,7 @@ public class OrderFlowService {
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final SupplierRepository supplierRepository;
+    private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderDistributionRepository orderDistributionRepository;
@@ -58,6 +60,7 @@ public class OrderFlowService {
             TenantRepository tenantRepository,
             UserRepository userRepository,
             SupplierRepository supplierRepository,
+            CategoryRepository categoryRepository,
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             OrderDistributionRepository orderDistributionRepository,
@@ -71,6 +74,7 @@ public class OrderFlowService {
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
         this.supplierRepository = supplierRepository;
+        this.categoryRepository = categoryRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.orderDistributionRepository = orderDistributionRepository;
@@ -83,26 +87,57 @@ public class OrderFlowService {
     }
 
     @Transactional
-    public Order createOrder(String tenantId, String userId, String title, String description, Instant scheduledAt, List<CreateOrderItem> items) {
+    public Order createOrder(
+            String tenantId,
+            String userId,
+            String deliveryAddress,
+            String deliveryCity,
+            String deliveryState,
+            Double deliveryLat,
+            Double deliveryLng,
+            Instant deliveryWindowStart,
+            Instant deliveryWindowEnd,
+            boolean isUrgent,
+            int auctionDurationMin,
+            int maxSuppliers,
+            String notes,
+            String referenceCode,
+            List<CreateOrderItem> items
+    ) {
         Tenant tenant = tenantRepository.findById(tenantId).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
         User user = userRepository.findByIdAndTenant_Id(userId, tenantId).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
 
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
-        order.setTitle(title);
-        order.setDescription(description);
+        order.setDeliveryAddress(deliveryAddress);
+        order.setDeliveryCity(deliveryCity);
+        order.setDeliveryState(deliveryState);
+        order.setDeliveryLat(deliveryLat);
+        order.setDeliveryLng(deliveryLng);
+        order.setDeliveryWindowStart(deliveryWindowStart);
+        order.setDeliveryWindowEnd(deliveryWindowEnd);
+        order.setUrgent(isUrgent);
+        order.setAuctionDurationMin(auctionDurationMin);
+        order.setMaxSuppliers(maxSuppliers);
+        order.setNotes(notes);
+        order.setReferenceCode(referenceCode);
         order.setStatus(Order.Status.draft);
-        order.setScheduledAt(scheduledAt);
         order = orderRepository.save(order);
 
         for (CreateOrderItem item : items) {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
-            orderItem.setName(item.name());
+            orderItem.setDescription(item.description());
             orderItem.setUnit(item.unit());
             orderItem.setQuantity(item.quantity());
             orderItem.setNotes(item.notes());
+            orderItem.setSortOrder(item.sortOrder() != null ? item.sortOrder() : 0);
+
+            if (item.categoryId() != null) {
+                orderItem.setCategory(categoryRepository.getReferenceById(item.categoryId()));
+            }
+
             orderItemRepository.save(orderItem);
         }
 
@@ -146,7 +181,7 @@ public class OrderFlowService {
     }
 
     @Transactional
-    public Proposal submitProposal(String tenantId, String distributionId, Proposal.Status status, Integer deliveryEtaHours, String message, List<CreateProposalItem> items) {
+    public Proposal submitProposal(String tenantId, String distributionId, Proposal.Status status, Integer deliveryEtaHours, Instant proposedDeliveryAt, String message, List<CreateProposalItem> items) {
         OrderDistribution distribution = orderDistributionRepository.findByIdAndOrder_Tenant_Id(distributionId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "distribution not found"));
 
@@ -159,6 +194,7 @@ public class OrderFlowService {
         proposal.setOrderDistribution(distribution);
         proposal.setStatus(status);
         proposal.setDeliveryEtaHours(deliveryEtaHours);
+        proposal.setProposedDeliveryAt(proposedDeliveryAt);
         proposal.setMessage(message);
         proposal.setTotalPrice(total);
         proposal = proposalRepository.save(proposal);
@@ -260,7 +296,7 @@ public class OrderFlowService {
         return ratingRepository.save(rating);
     }
 
-    public record CreateOrderItem(String name, String unit, BigDecimal quantity, String notes) {}
+    public record CreateOrderItem(String categoryId, String description, String unit, BigDecimal quantity, String notes, Integer sortOrder) {}
 
     public record CreateProposalItem(
             String orderItemId,

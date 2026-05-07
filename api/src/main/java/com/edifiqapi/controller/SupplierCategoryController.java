@@ -5,6 +5,7 @@ import com.edifiqapi.repository.catalog.CategoryRepository;
 import com.edifiqapi.repository.supplier.SupplierCategoryRepository;
 import com.edifiqapi.repository.supplier.SupplierRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,25 +35,25 @@ public class SupplierCategoryController {
     }
 
     @GetMapping
-    public List<SupplierCategoryResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<SupplierCategoryResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return supplierCategoryRepository.findAllBySupplier_Tenant_Id(tenantId).stream()
+        return ApiResponse.of(supplierCategoryRepository.findAllBySupplier_Tenant_Id(tenantId).stream()
                 .map(SupplierCategoryResponse::from)
-                .toList();
+                .toList());
     }
 
     @PostMapping
-    public SupplierCategoryResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateSupplierCategoryRequest request) {
+    public ApiResponse<SupplierCategoryResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateSupplierCategoryRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         var supplier = supplierRepository.findByIdAndTenant_Id(request.supplierId(), tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
-        var category = categoryRepository.findByIdAndTenant_Id(request.categoryId(), tenantId)
+        var category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "category not found"));
 
         SupplierCategory sc = new SupplierCategory();
         sc.setSupplier(supplier);
         sc.setCategory(category);
-        return SupplierCategoryResponse.from(supplierCategoryRepository.save(sc));
+        return ApiResponse.of(SupplierCategoryResponse.from(supplierCategoryRepository.save(sc)));
     }
 
     @DeleteMapping("/{id}")
@@ -71,6 +72,3 @@ public class SupplierCategoryController {
         }
     }
 }
-
-
-

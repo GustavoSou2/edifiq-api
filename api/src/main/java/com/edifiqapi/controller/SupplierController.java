@@ -4,6 +4,7 @@ import com.edifiqapi.domain.supplier.Supplier;
 import com.edifiqapi.repository.supplier.SupplierRepository;
 import com.edifiqapi.repository.tenant.TenantRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,20 +29,20 @@ public class SupplierController {
     }
 
     @GetMapping
-    public List<SupplierResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<SupplierResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return supplierRepository.findAllByTenant_Id(tenantId).stream().map(SupplierResponse::from).toList();
+        return ApiResponse.of(supplierRepository.findAllByTenant_Id(tenantId).stream().map(SupplierResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public SupplierResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<SupplierResponse> get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return supplierRepository.findByIdAndTenant_Id(id, tenantId).map(SupplierResponse::from)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
+        return ApiResponse.of(supplierRepository.findByIdAndTenant_Id(id, tenantId).map(SupplierResponse::from)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found")));
     }
 
     @PostMapping
-    public SupplierResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpsertSupplierRequest request) {
+    public ApiResponse<SupplierResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpsertSupplierRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
@@ -57,11 +58,11 @@ public class SupplierController {
         supplier.setPostalCode(request.postalCode());
         supplier.setActive(request.active());
         supplier.setReputationScore(BigDecimal.ZERO);
-        return SupplierResponse.from(supplierRepository.save(supplier));
+        return ApiResponse.of(SupplierResponse.from(supplierRepository.save(supplier)));
     }
 
     @PutMapping("/{id}")
-    public SupplierResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpsertSupplierRequest request) {
+    public ApiResponse<SupplierResponse> update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpsertSupplierRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         Supplier supplier = supplierRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
@@ -74,7 +75,7 @@ public class SupplierController {
         supplier.setState(request.state());
         supplier.setPostalCode(request.postalCode());
         supplier.setActive(request.active());
-        return SupplierResponse.from(supplierRepository.save(supplier));
+        return ApiResponse.of(SupplierResponse.from(supplierRepository.save(supplier)));
     }
 
     @DeleteMapping("/{id}")
@@ -124,6 +125,3 @@ public class SupplierController {
         }
     }
 }
-
-
-

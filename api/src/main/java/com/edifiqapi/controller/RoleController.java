@@ -4,6 +4,7 @@ import com.edifiqapi.domain.rbac.Role;
 import com.edifiqapi.repository.rbac.RoleRepository;
 import com.edifiqapi.repository.tenant.TenantRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -29,20 +30,20 @@ public class RoleController {
     }
 
     @GetMapping
-    public List<RoleResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<RoleResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return roleRepository.findAllByTenant_Id(tenantId).stream().map(RoleResponse::from).toList();
+        return ApiResponse.of(roleRepository.findAllByTenant_Id(tenantId).stream().map(RoleResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public RoleResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<RoleResponse> get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return roleRepository.findByIdAndTenant_Id(id, tenantId).map(RoleResponse::from)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "role not found"));
+        return ApiResponse.of(roleRepository.findByIdAndTenant_Id(id, tenantId).map(RoleResponse::from)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "role not found")));
     }
 
     @PostMapping
-    public RoleResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpsertRoleRequest request) {
+    public ApiResponse<RoleResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpsertRoleRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         var tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
@@ -52,11 +53,11 @@ public class RoleController {
         role.setName(request.name());
         role.setPermissions(request.permissions());
         role.setSystem(false);
-        return RoleResponse.from(roleRepository.save(role));
+        return ApiResponse.of(RoleResponse.from(roleRepository.save(role)));
     }
 
     @PutMapping("/{id}")
-    public RoleResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpsertRoleRequest request) {
+    public ApiResponse<RoleResponse> update(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody UpsertRoleRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         Role role = roleRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "role not found"));
@@ -65,7 +66,7 @@ public class RoleController {
         }
         role.setName(request.name());
         role.setPermissions(request.permissions());
-        return RoleResponse.from(roleRepository.save(role));
+        return ApiResponse.of(RoleResponse.from(roleRepository.save(role)));
     }
 
     @DeleteMapping("/{id}")
@@ -87,6 +88,3 @@ public class RoleController {
         }
     }
 }
-
-
-

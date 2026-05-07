@@ -2,6 +2,7 @@ package com.edifiqapi.controller;
 
 import com.edifiqapi.repository.audit.AuditLogRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,9 +23,9 @@ public class AuditLogController {
     }
 
     @GetMapping
-    public List<AuditLogResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<AuditLogResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return auditLogRepository.findAllByTenant_IdOrderByCreatedAtDesc(tenantId).stream()
+        List<AuditLogResponse> items = auditLogRepository.findAllByTenant_IdOrderByCreatedAtDesc(tenantId).stream()
                 .map(a -> new AuditLogResponse(
                         a.getId(),
                         a.getAction(),
@@ -34,6 +35,7 @@ public class AuditLogController {
                         a.getCreatedAt()
                 ))
                 .toList();
+        return ApiResponse.of(items);
     }
 
     public record AuditLogResponse(
@@ -45,6 +47,3 @@ public class AuditLogController {
             Instant createdAt
     ) {}
 }
-
-
-

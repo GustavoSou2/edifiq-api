@@ -3,6 +3,7 @@ package com.edifiqapi.controller;
 import com.edifiqapi.domain.webhook.WebhookDelivery;
 import com.edifiqapi.repository.webhook.WebhookDeliveryRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,17 +28,18 @@ public class WebhookDeliveryController {
     }
 
     @GetMapping
-    public List<WebhookDeliveryResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<WebhookDeliveryResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return webhookDeliveryRepository.findAllByWebhook_Tenant_Id(tenantId).stream().map(WebhookDeliveryResponse::from).toList();
+        return ApiResponse.of(webhookDeliveryRepository.findAllByWebhook_Tenant_Id(tenantId).stream()
+                .map(WebhookDeliveryResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public WebhookDeliveryResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<WebhookDeliveryResponse> get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
         WebhookDelivery delivery = webhookDeliveryRepository.findByIdAndWebhook_Tenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "webhook delivery not found"));
-        return WebhookDeliveryResponse.from(delivery);
+        return ApiResponse.of(WebhookDeliveryResponse.from(delivery));
     }
 
     public record WebhookDeliveryResponse(
@@ -64,6 +66,3 @@ public class WebhookDeliveryController {
         }
     }
 }
-
-
-

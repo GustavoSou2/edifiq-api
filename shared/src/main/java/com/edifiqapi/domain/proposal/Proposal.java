@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "proposals")
@@ -35,6 +36,9 @@ public class Proposal extends BaseEntity {
 
     @Column(name = "delivery_eta_hours")
     private Integer deliveryEtaHours;
+
+    @Column(name = "proposed_delivery_at")
+    private Instant proposedDeliveryAt;
 
     @Column(columnDefinition = "text")
     private String message;
@@ -69,6 +73,14 @@ public class Proposal extends BaseEntity {
 
     public void setDeliveryEtaHours(Integer deliveryEtaHours) {
         this.deliveryEtaHours = deliveryEtaHours;
+    }
+
+    public Instant getProposedDeliveryAt() {
+        return proposedDeliveryAt;
+    }
+
+    public void setProposedDeliveryAt(Instant proposedDeliveryAt) {
+        this.proposedDeliveryAt = proposedDeliveryAt;
     }
 
     public String getMessage() {

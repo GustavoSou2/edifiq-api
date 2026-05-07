@@ -5,6 +5,7 @@ import com.edifiqapi.repository.rbac.RoleRepository;
 import com.edifiqapi.repository.rbac.UserRepository;
 import com.edifiqapi.repository.rbac.UserRoleRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,13 +32,13 @@ public class UserRoleController {
     }
 
     @GetMapping
-    public List<UserRoleResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<UserRoleResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return userRoleRepository.findAllByUser_Tenant_Id(tenantId).stream().map(UserRoleResponse::from).toList();
+        return ApiResponse.of(userRoleRepository.findAllByUser_Tenant_Id(tenantId).stream().map(UserRoleResponse::from).toList());
     }
 
     @PostMapping
-    public UserRoleResponse grant(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody GrantUserRoleRequest request) {
+    public ApiResponse<UserRoleResponse> grant(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody GrantUserRoleRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         String grantedById = JwtClaims.userId(jwt);
 
@@ -53,7 +54,7 @@ public class UserRoleController {
         userRole.setRole(role);
         userRole.setGrantedBy(grantedBy);
         userRole.setGrantedAt(Instant.now());
-        return UserRoleResponse.from(userRoleRepository.save(userRole));
+        return ApiResponse.of(UserRoleResponse.from(userRoleRepository.save(userRole)));
     }
 
     @DeleteMapping("/{id}")
@@ -78,6 +79,3 @@ public class UserRoleController {
         }
     }
 }
-
-
-

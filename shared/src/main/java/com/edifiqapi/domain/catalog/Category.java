@@ -1,30 +1,38 @@
 package com.edifiqapi.domain.catalog;
 
 import com.edifiqapi.domain.BaseEntity;
-import com.edifiqapi.domain.tenant.Tenant;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "categories")
 public class Category extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tenant_id", nullable = false)
-    private Tenant tenant;
 
-    @Column(nullable = false, length = 120)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Category parent;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    private List<Category> children = new ArrayList<>();
+
+    @Column(nullable = false, length = 100)
     private String name;
 
-    public Tenant getTenant() {
-        return tenant;
+    @Column(nullable = false, length = 100, unique = true)
+    private String slug;
+
+    public Category getParent() {
+        return parent;
     }
 
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
+    public void setParent(Category parent) {
+        this.parent = parent;
+    }
+
+    public List<Category> getChildren() {
+        return children;
     }
 
     public String getName() {
@@ -34,5 +42,14 @@ public class Category extends BaseEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
 }
+
 

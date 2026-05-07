@@ -62,6 +62,12 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_lng")
     private Double deliveryLng;
 
+    @Column(name = "delivery_window_start")
+    private Instant deliveryWindowStart;
+
+    @Column(name = "delivery_window_end")
+    private Instant deliveryWindowEnd;
+
     @Column(name = "max_suppliers", nullable = false)
     private int maxSuppliers;
 
@@ -182,6 +188,22 @@ public class Order extends BaseEntity {
 
     public void setDeliveryLng(Double deliveryLng) {
         this.deliveryLng = deliveryLng;
+    }
+
+    public Instant getDeliveryWindowStart() {
+        return deliveryWindowStart;
+    }
+
+    public void setDeliveryWindowStart(Instant deliveryWindowStart) {
+        this.deliveryWindowStart = deliveryWindowStart;
+    }
+
+    public Instant getDeliveryWindowEnd() {
+        return deliveryWindowEnd;
+    }
+
+    public void setDeliveryWindowEnd(Instant deliveryWindowEnd) {
+        this.deliveryWindowEnd = deliveryWindowEnd;
     }
 
     public int getMaxSuppliers() {

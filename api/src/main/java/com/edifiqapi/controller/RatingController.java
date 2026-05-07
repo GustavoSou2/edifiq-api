@@ -3,6 +3,7 @@ package com.edifiqapi.controller;
 import com.edifiqapi.domain.delivery.Rating;
 import com.edifiqapi.repository.delivery.RatingRepository;
 import com.edifiqapi.security.JwtClaims;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,26 +25,31 @@ public class RatingController {
     }
 
     @GetMapping
-    public List<RatingResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<RatingResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return ratingRepository.findAllByOrderSelection_Order_Tenant_Id(tenantId).stream().map(RatingResponse::from).toList();
+        return ApiResponse.of(ratingRepository.findAllByOrderSelection_Order_Tenant_Id(tenantId).stream()
+                .map(RatingResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public RatingResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<RatingResponse> get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
         Rating rating = ratingRepository.findByIdAndOrderSelection_Order_Tenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "rating not found"));
-        return RatingResponse.from(rating);
+        return ApiResponse.of(RatingResponse.from(rating));
     }
 
     @PatchMapping("/{id}/response")
-    public RatingResponse respond(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody RespondRatingRequest request) {
+    public ApiResponse<RatingResponse> respond(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id,
+            @Valid @RequestBody RespondRatingRequest request
+    ) {
         String tenantId = JwtClaims.tenantId(jwt);
         Rating rating = ratingRepository.findByIdAndOrderSelection_Order_Tenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "rating not found"));
         rating.setResponse(request.response());
-        return RatingResponse.from(ratingRepository.save(rating));
+        return ApiResponse.of(RatingResponse.from(ratingRepository.save(rating)));
     }
 
     public record RespondRatingRequest(@NotBlank String response) {}
@@ -54,6 +60,3 @@ public class RatingController {
         }
     }
 }
-
-
-

@@ -17,6 +17,7 @@ import com.edifiqapi.repository.proposal.ProposalItemRepository;
 import com.edifiqapi.repository.proposal.ProposalRepository;
 import com.edifiqapi.security.JwtClaims;
 import com.edifiqapi.service.OrderFlowService;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -64,158 +65,218 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderSummaryResponse> list(@AuthenticationPrincipal Jwt jwt) {
+    public ApiResponse<List<OrderSummaryResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return orderRepository.findAllByTenant_Id(tenantId).stream().map(OrderSummaryResponse::from).toList();
+        return ApiResponse.of(orderRepository.findAllByTenant_Id(tenantId).stream().map(OrderSummaryResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public OrderDetailsResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<OrderDetailsResponse> get(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
         Order order = orderRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "order not found"));
         List<OrderItemResponse> items = orderItemRepository.findAllByOrder_Id(order.getId()).stream()
                 .map(OrderItemResponse::from)
                 .toList();
-        return OrderDetailsResponse.from(order, items);
+        return ApiResponse.of(OrderDetailsResponse.from(order, items));
     }
 
     @PostMapping
-    public OrderDetailsResponse create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateOrderRequest request) {
+    public ApiResponse<OrderDetailsResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateOrderRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
         String userId = JwtClaims.userId(jwt);
         Order order = orderFlowService.createOrder(
                 tenantId,
                 userId,
-                request.title(),
-                request.description(),
-                request.scheduledAt(),
+                request.deliveryAddress(),
+                request.deliveryCity(),
+                request.deliveryState(),
+                request.deliveryLat(),
+                request.deliveryLng(),
+                request.deliveryWindowStart(),
+                request.deliveryWindowEnd(),
+                request.isUrgent(),
+                request.auctionDurationMin() != null ? request.auctionDurationMin() : 60,
+                request.maxSuppliers() != null ? request.maxSuppliers() : 10,
+                request.notes(),
+                request.referenceCode(),
                 request.items().stream()
-                        .map(i -> new OrderFlowService.CreateOrderItem(i.name(), i.unit(), i.quantity(), i.notes()))
+                        .map(i -> new OrderFlowService.CreateOrderItem(i.categoryId(), i.description(), i.unit(), i.quantity(), i.notes(), i.sortOrder()))
                         .toList()
         );
         List<OrderItemResponse> items = orderItemRepository.findAllByOrder_Id(order.getId()).stream().map(OrderItemResponse::from).toList();
-        return OrderDetailsResponse.from(order, items);
+        return ApiResponse.of(OrderDetailsResponse.from(order, items));
     }
 
     @PostMapping("/{id}/publish")
-    public List<OrderDistributionResponse> publish(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<List<OrderDistributionResponse>> publish(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
         List<OrderDistribution> distributions = orderFlowService.publishAndDistribute(tenantId, id);
-        return distributions.stream().map(OrderDistributionResponse::from).toList();
+        return ApiResponse.of(distributions.stream().map(OrderDistributionResponse::from).toList());
     }
 
     @GetMapping("/{id}/distributions")
-    public List<OrderDistributionResponse> distributions(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<List<OrderDistributionResponse>> distributions(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return orderDistributionRepository.findAllByOrder_IdAndOrder_Tenant_Id(id, tenantId).stream()
-                .map(OrderDistributionResponse::from).toList();
+        return ApiResponse.of(orderDistributionRepository.findAllByOrder_IdAndOrder_Tenant_Id(id, tenantId).stream()
+                .map(OrderDistributionResponse::from).toList());
     }
 
     @GetMapping("/{id}/proposals")
-    public List<ProposalResponse> proposals(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+    public ApiResponse<List<ProposalResponse>> proposals(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return proposalRepository.findAllByOrderDistribution_Order_IdAndOrderDistribution_Order_Tenant_Id(id, tenantId)
-                .stream().map(ProposalResponse::from).toList();
+        return ApiResponse.of(proposalRepository.findAllByOrderDistribution_Order_IdAndOrderDistribution_Order_Tenant_Id(id, tenantId)
+                .stream().map(ProposalResponse::from).toList());
     }
 
     @GetMapping("/{orderId}/selection")
-    public OrderSelectionResponse selection(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderId) {
+    public ApiResponse<OrderSelectionResponse> selection(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderId) {
         String tenantId = JwtClaims.tenantId(jwt);
         OrderSelection selection = orderSelectionRepository.findByOrder_IdAndOrder_Tenant_Id(orderId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "selection not found"));
-        return OrderSelectionResponse.from(selection);
+        return ApiResponse.of(OrderSelectionResponse.from(selection));
     }
 
     @PostMapping("/{orderId}/select")
-    public OrderSelectionResponse select(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderId, @Valid @RequestBody SelectProposalRequest request) {
+    public ApiResponse<OrderSelectionResponse> select(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String orderId,
+            @Valid @RequestBody SelectProposalRequest request
+    ) {
         String tenantId = JwtClaims.tenantId(jwt);
         String userId = JwtClaims.userId(jwt);
         OrderSelection selection = orderFlowService.selectProposal(tenantId, userId, orderId, request.proposalId());
-        return OrderSelectionResponse.from(selection);
+        return ApiResponse.of(OrderSelectionResponse.from(selection));
     }
 
     @GetMapping("/{orderId}/delivery")
-    public DeliveryResponse delivery(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderId) {
+    public ApiResponse<DeliveryResponse> delivery(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderId) {
         String tenantId = JwtClaims.tenantId(jwt);
         OrderSelection selection = orderSelectionRepository.findByOrder_IdAndOrder_Tenant_Id(orderId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "selection not found"));
-
         Delivery delivery = deliveryRepository.findByOrderSelection_IdAndOrderSelection_Order_Tenant_Id(selection.getId(), tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "delivery not found"));
-        return DeliveryResponse.from(delivery);
+        return ApiResponse.of(DeliveryResponse.from(delivery));
     }
 
     @PostMapping("/{orderId}/rate")
-    public RatingResponse rate(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderId, @Valid @RequestBody CreateRatingRequest request) {
+    public ApiResponse<RatingResponse> rate(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String orderId,
+            @Valid @RequestBody CreateRatingRequest request
+    ) {
         String tenantId = JwtClaims.tenantId(jwt);
         String userId = JwtClaims.userId(jwt);
         OrderSelection selection = orderSelectionRepository.findByOrder_IdAndOrder_Tenant_Id(orderId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "selection not found"));
-
         Rating rating = orderFlowService.createRating(tenantId, userId, selection.getId(), request.score(), request.comment());
-        return RatingResponse.from(rating);
+        return ApiResponse.of(RatingResponse.from(rating));
     }
 
     @GetMapping("/{orderId}/proposals/{proposalId}/items")
-    public List<ProposalItemResponse> proposalItems(@AuthenticationPrincipal Jwt jwt, @PathVariable String orderId, @PathVariable String proposalId) {
+    public ApiResponse<List<ProposalItemResponse>> proposalItems(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String orderId,
+            @PathVariable String proposalId
+    ) {
         String tenantId = JwtClaims.tenantId(jwt);
         orderRepository.findByIdAndTenant_Id(orderId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "order not found"));
         proposalRepository.findByIdAndOrderDistribution_Order_Tenant_Id(proposalId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "proposal not found"));
-        return proposalItemRepository.findAllByProposal_Id(proposalId).stream().map(ProposalItemResponse::from).toList();
+        return ApiResponse.of(proposalItemRepository.findAllByProposal_Id(proposalId).stream().map(ProposalItemResponse::from).toList());
     }
 
+    // ── Request records ──────────────────────────────────────────────────────
+
     public record CreateOrderRequest(
-            @NotBlank String title,
-            String description,
-            Instant scheduledAt,
+            @NotBlank String deliveryAddress,
+            String deliveryCity,
+            String deliveryState,
+            Double deliveryLat,
+            Double deliveryLng,
+            @NotNull Instant deliveryWindowStart,
+            Instant deliveryWindowEnd,
+            boolean isUrgent,
+            Integer auctionDurationMin,
+            Integer maxSuppliers,
+            String notes,
+            String referenceCode,
             @NotNull List<CreateOrderItemRequest> items
     ) {}
 
     public record CreateOrderItemRequest(
-            @NotBlank String name,
+            String categoryId,
+            @NotBlank String description,
             String unit,
             @NotNull BigDecimal quantity,
-            String notes
+            String notes,
+            Integer sortOrder
     ) {}
 
     public record SelectProposalRequest(@NotNull String proposalId) {}
 
     public record CreateRatingRequest(@NotNull Integer score, String comment) {}
 
-    public record OrderSummaryResponse(String id, String title, Order.Status status, Instant scheduledAt, Instant createdAt) {
+    // ── Response records ─────────────────────────────────────────────────────
+
+    public record OrderSummaryResponse(String id, String referenceCode, Order.Status status, boolean isUrgent, String deliveryCity, String deliveryState, Instant createdAt) {
         static OrderSummaryResponse from(Order order) {
-            return new OrderSummaryResponse(order.getId(), order.getTitle(), order.getStatus(), order.getScheduledAt(), order.getCreatedAt());
+            return new OrderSummaryResponse(order.getId(), order.getReferenceCode(), order.getStatus(), order.isUrgent(), order.getDeliveryCity(), order.getDeliveryState(), order.getCreatedAt());
         }
     }
 
     public record OrderDetailsResponse(
             String id,
-            String title,
-            String description,
+            String referenceCode,
+            String notes,
             Order.Status status,
-            Instant scheduledAt,
+            boolean isUrgent,
+            String deliveryAddress,
+            String deliveryCity,
+            String deliveryState,
+            Double deliveryLat,
+            Double deliveryLng,
+            Instant deliveryWindowStart,
+            Instant deliveryWindowEnd,
+            int maxSuppliers,
+            int auctionDurationMin,
             Instant createdAt,
             List<OrderItemResponse> items
     ) {
         static OrderDetailsResponse from(Order order, List<OrderItemResponse> items) {
             return new OrderDetailsResponse(
                     order.getId(),
-                    order.getTitle(),
-                    order.getDescription(),
+                    order.getReferenceCode(),
+                    order.getNotes(),
                     order.getStatus(),
-                    order.getScheduledAt(),
+                    order.isUrgent(),
+                    order.getDeliveryAddress(),
+                    order.getDeliveryCity(),
+                    order.getDeliveryState(),
+                    order.getDeliveryLat(),
+                    order.getDeliveryLng(),
+                    order.getDeliveryWindowStart(),
+                    order.getDeliveryWindowEnd(),
+                    order.getMaxSuppliers(),
+                    order.getAuctionDurationMin(),
                     order.getCreatedAt(),
                     items
             );
         }
     }
 
-    public record OrderItemResponse(String id, String name, String unit, BigDecimal quantity, String notes) {
+    public record OrderItemResponse(String id, String categoryId, String description, String unit, BigDecimal quantity, String notes, int sortOrder) {
         static OrderItemResponse from(OrderItem item) {
-            return new OrderItemResponse(item.getId(), item.getName(), item.getUnit(), item.getQuantity(), item.getNotes());
+            return new OrderItemResponse(
+                    item.getId(),
+                    item.getCategory() != null ? item.getCategory().getId() : null,
+                    item.getDescription(),
+                    item.getUnit(),
+                    item.getQuantity(),
+                    item.getNotes(),
+                    item.getSortOrder()
+            );
         }
     }
 
@@ -251,7 +312,7 @@ public class OrderController {
         }
     }
 
-    public record ProposalResponse(String id, String distributionId, Proposal.Status status, BigDecimal totalPrice, Integer deliveryEtaHours, String message) {
+    public record ProposalResponse(String id, String distributionId, Proposal.Status status, BigDecimal totalPrice, Integer deliveryEtaHours, Instant proposedDeliveryAt, String message) {
         static ProposalResponse from(Proposal proposal) {
             return new ProposalResponse(
                     proposal.getId(),
@@ -259,6 +320,7 @@ public class OrderController {
                     proposal.getStatus(),
                     proposal.getTotalPrice(),
                     proposal.getDeliveryEtaHours(),
+                    proposal.getProposedDeliveryAt(),
                     proposal.getMessage()
             );
         }
@@ -311,5 +373,3 @@ public class OrderController {
         }
     }
 }
-
-

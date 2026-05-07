@@ -1,6 +1,7 @@
 package com.edifiqapi.controller;
 
 import com.edifiqapi.repository.plan.PlanRepository;
+import com.edifiqapi.web.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.*;
@@ -21,18 +22,18 @@ public class PlanController {
     }
 
     @GetMapping
-    public List<PlanResponse> list() {
-        return planRepository.findAll().stream().map(PlanResponse::from).toList();
+    public ApiResponse<List<PlanResponse>> list() {
+        return ApiResponse.of(planRepository.findAll().stream().map(PlanResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public PlanResponse get(@PathVariable String id) {
-        return planRepository.findById(id).map(PlanResponse::from)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "plan not found"));
+    public ApiResponse<PlanResponse> get(@PathVariable String id) {
+        return ApiResponse.of(planRepository.findById(id).map(PlanResponse::from)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "plan not found")));
     }
 
     @PutMapping("/{id}")
-    public PlanResponse update(@PathVariable String id, @Valid @RequestBody UpsertPlanRequest request) {
+    public ApiResponse<PlanResponse> update(@PathVariable String id, @Valid @RequestBody UpsertPlanRequest request) {
         var plan = planRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "plan not found"));
         plan.setName(request.name());
@@ -42,7 +43,7 @@ public class PlanController {
         plan.setHasAnalytics(request.hasAnalytics());
         plan.setHasApiAccess(request.hasApiAccess());
         plan.setPriceMonthly(request.priceMonthly());
-        return PlanResponse.from(planRepository.save(plan));
+        return ApiResponse.of(PlanResponse.from(planRepository.save(plan)));
     }
 
     public record UpsertPlanRequest(
@@ -79,6 +80,3 @@ public class PlanController {
         }
     }
 }
-
-
-
