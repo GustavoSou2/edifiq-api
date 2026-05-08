@@ -90,6 +90,7 @@ public class OrderFlowService {
     public Order createOrder(
             String tenantId,
             String userId,
+            String title,
             String deliveryAddress,
             String deliveryCity,
             String deliveryState,
@@ -104,12 +105,20 @@ public class OrderFlowService {
             String referenceCode,
             List<CreateOrderItem> items
     ) {
-        Tenant tenant = tenantRepository.findById(tenantId).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
-        User user = userRepository.findByIdAndTenant_Id(userId, tenantId).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
+        // Valida que o tenant existe
+        tenantRepository.findById(tenantId).orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "tenant not found"));
+        Tenant tenant = tenantRepository.getReferenceById(tenantId);
+        // Valida que o usuário existe e pertence ao tenant — retorna entidade gerenciada na sessão atual
+        if (userId == null) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "missing user id in token");
+        }
+        User user = userRepository.findByIdAndTenant_Id(userId, tenantId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found: " + userId));
 
         Order order = new Order();
         order.setTenant(tenant);
         order.setCreatedBy(user);
+        order.setTitle(title);
         order.setDeliveryAddress(deliveryAddress);
         order.setDeliveryCity(deliveryCity);
         order.setDeliveryState(deliveryState);
@@ -231,8 +240,9 @@ public class OrderFlowService {
             throw new ResponseStatusException(BAD_REQUEST, "order already selected");
         }
 
-        User selectedBy = userRepository.findByIdAndTenant_Id(userId, tenantId)
+        userRepository.findByIdAndTenant_Id(userId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
+        User selectedBy = userRepository.getReferenceById(userId);
 
         OrderSelection selection = new OrderSelection();
         selection.setOrder(order);
@@ -284,13 +294,14 @@ public class OrderFlowService {
 
         User ratedBy = userRepository.findByIdAndTenant_Id(userId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
+        User ratedByRef = userRepository.getReferenceById(userId);
 
         Supplier supplier = selection.getProposal().getOrderDistribution().getSupplier();
 
         Rating rating = new Rating();
         rating.setOrderSelection(selection);
         rating.setSupplier(supplier);
-        rating.setRatedBy(ratedBy);
+        rating.setRatedBy(ratedByRef);
         rating.setScore(score);
         rating.setComment(comment);
         return ratingRepository.save(rating);

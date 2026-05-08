@@ -92,6 +92,9 @@ public class Order extends BaseEntity {
     @Column(name = "reference_code", length = 50)
     private String referenceCode;
 
+    @Column(name = "title", length = 200)
+    private String title;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)
     private Map<String, Object> metadata;
@@ -270,35 +273,19 @@ public class Order extends BaseEntity {
         this.referenceCode = referenceCode;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public Map<String, Object> getMetadata() {
         return metadata;
     }
 
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata;
-    }
-
-    public String getTitle() {
-        return referenceCode;
-    }
-
-    public void setTitle(String title) {
-        this.referenceCode = title;
-    }
-
-    public String getDescription() {
-        return notes;
-    }
-
-    public void setDescription(String description) {
-        this.notes = description;
-    }
-
-    public Instant getScheduledAt() {
-        return expiresAt;
-    }
-
-    public void setScheduledAt(Instant scheduledAt) {
-        this.expiresAt = scheduledAt;
     }
 }

@@ -4,6 +4,9 @@ WORKDIR /app
 
 COPY . .
 
+RUN sed -i 's/\r$//' mvnw
+RUN chmod +x mvnw
+
 RUN ./mvnw clean install -N
 RUN ./mvnw -pl shared install
 RUN ./mvnw -f worker/pom.xml clean package -DskipTests

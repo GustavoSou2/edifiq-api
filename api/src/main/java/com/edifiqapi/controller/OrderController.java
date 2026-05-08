@@ -88,6 +88,7 @@ public class OrderController {
         Order order = orderFlowService.createOrder(
                 tenantId,
                 userId,
+                request.title(),
                 request.deliveryAddress(),
                 request.deliveryCity(),
                 request.deliveryState(),
@@ -190,6 +191,7 @@ public class OrderController {
     // ── Request records ──────────────────────────────────────────────────────
 
     public record CreateOrderRequest(
+            String title,
             @NotBlank String deliveryAddress,
             String deliveryCity,
             String deliveryState,
@@ -220,14 +222,15 @@ public class OrderController {
 
     // ── Response records ─────────────────────────────────────────────────────
 
-    public record OrderSummaryResponse(String id, String referenceCode, Order.Status status, boolean isUrgent, String deliveryCity, String deliveryState, Instant createdAt) {
+    public record OrderSummaryResponse(String id, String title, String referenceCode, Order.Status status, boolean isUrgent, String deliveryCity, String deliveryState, Instant createdAt) {
         static OrderSummaryResponse from(Order order) {
-            return new OrderSummaryResponse(order.getId(), order.getReferenceCode(), order.getStatus(), order.isUrgent(), order.getDeliveryCity(), order.getDeliveryState(), order.getCreatedAt());
+            return new OrderSummaryResponse(order.getId(), order.getTitle(), order.getReferenceCode(), order.getStatus(), order.isUrgent(), order.getDeliveryCity(), order.getDeliveryState(), order.getCreatedAt());
         }
     }
 
     public record OrderDetailsResponse(
             String id,
+            String title,
             String referenceCode,
             String notes,
             Order.Status status,
@@ -247,6 +250,7 @@ public class OrderController {
         static OrderDetailsResponse from(Order order, List<OrderItemResponse> items) {
             return new OrderDetailsResponse(
                     order.getId(),
+                    order.getTitle(),
                     order.getReferenceCode(),
                     order.getNotes(),
                     order.getStatus(),
