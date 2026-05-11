@@ -37,6 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -55,6 +58,8 @@ public class OrderFlowService {
     private final DeliveryRepository deliveryRepository;
     private final RatingRepository ratingRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+
+    private static final Logger log = LoggerFactory.getLogger(OrderFlowService.class);
 
     public OrderFlowService(
             TenantRepository tenantRepository,
@@ -112,8 +117,10 @@ public class OrderFlowService {
         if (userId == null) {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "missing user id in token");
         }
-        User user = userRepository.findByIdAndTenant_Id(userId, tenantId)
+
+        userRepository.findByIdAndTenant_Id(userId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found: " + userId));
+        User user = userRepository.getReferenceById(userId);
 
         Order order = new Order();
         order.setTenant(tenant);
@@ -132,7 +139,16 @@ public class OrderFlowService {
         order.setNotes(notes);
         order.setReferenceCode(referenceCode);
         order.setStatus(Order.Status.draft);
+
+        System.out.println(">>> PRE-SAVE tenant=" +
+                (order.getTenant() != null ? order.getTenant().getId() : "NULL") +
+                " createdBy=" +
+                (order.getCreatedBy() != null ? order.getCreatedBy().getId() : "NULL") +
+                " userId=" + userId
+        );
+
         order = orderRepository.save(order);
+
 
         for (CreateOrderItem item : items) {
             OrderItem orderItem = new OrderItem();
@@ -152,6 +168,32 @@ public class OrderFlowService {
 
         return order;
     }
+
+    @Transactional
+    public Order updateOrder(String tenantId, String orderId, UpdateOrderRequest request) {
+        Order order = orderRepository.findByIdAndTenant_Id(orderId, tenantId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "order not found"));
+
+        if (request.deliveryAddress() != null) order.setDeliveryAddress(request.deliveryAddress());
+        if (request.deliveryCity()    != null) order.setDeliveryCity(request.deliveryCity());
+        if (request.deliveryState()   != null) order.setDeliveryState(request.deliveryState());
+        if (request.deliveryLat()     != null) order.setDeliveryLat(request.deliveryLat());
+        if (request.deliveryLng()     != null) order.setDeliveryLng(request.deliveryLng());
+        if (request.title()           != null) order.setTitle(request.title());
+        if (request.notes()           != null) order.setNotes(request.notes());
+
+        return orderRepository.save(order);
+    }
+
+    public record UpdateOrderRequest(
+            String deliveryAddress,
+            String deliveryCity,
+            String deliveryState,
+            Double deliveryLat,
+            Double deliveryLng,
+            String title,
+            String notes
+    ) {}
 
     @Transactional
     public List<OrderDistribution> publishAndDistribute(String tenantId, String orderId) {

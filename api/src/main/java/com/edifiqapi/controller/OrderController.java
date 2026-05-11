@@ -116,6 +116,28 @@ public class OrderController {
         return ApiResponse.of(distributions.stream().map(OrderDistributionResponse::from).toList());
     }
 
+    @PutMapping("/{id}")
+    public ApiResponse<OrderDetailsResponse> update(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id,
+            @RequestBody UpdateOrderRequest request
+    ) {
+        String tenantId = JwtClaims.tenantId(jwt);
+        Order order = orderFlowService.updateOrder(tenantId, id,
+                new OrderFlowService.UpdateOrderRequest(
+                        request.deliveryAddress(),
+                        request.deliveryCity(),
+                        request.deliveryState(),
+                        request.deliveryLat(),
+                        request.deliveryLng(),
+                        request.title(),
+                        request.notes()
+                ));
+        List<OrderItemResponse> items = orderItemRepository.findAllByOrder_Id(order.getId())
+                .stream().map(OrderItemResponse::from).toList();
+        return ApiResponse.of(OrderDetailsResponse.from(order, items));
+    }
+
     @GetMapping("/{id}/distributions")
     public ApiResponse<List<OrderDistributionResponse>> distributions(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
@@ -190,9 +212,19 @@ public class OrderController {
 
     // ── Request records ──────────────────────────────────────────────────────
 
+    public record UpdateOrderRequest(
+            String deliveryAddress,
+            String deliveryCity,
+            String deliveryState,
+            Double deliveryLat,
+            Double deliveryLng,
+            String title,
+            String notes
+    ) {}
+
     public record CreateOrderRequest(
             String title,
-            @NotBlank String deliveryAddress,
+            String deliveryAddress,
             String deliveryCity,
             String deliveryState,
             Double deliveryLat,
