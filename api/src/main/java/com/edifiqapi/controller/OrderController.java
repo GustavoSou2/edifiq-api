@@ -210,8 +210,6 @@ public class OrderController {
         return ApiResponse.of(proposalItemRepository.findAllByProposal_Id(proposalId).stream().map(ProposalItemResponse::from).toList());
     }
 
-    // ── Request records ──────────────────────────────────────────────────────
-
     public record UpdateOrderRequest(
             String deliveryAddress,
             String deliveryCity,
@@ -251,8 +249,6 @@ public class OrderController {
     public record SelectProposalRequest(@NotNull String proposalId) {}
 
     public record CreateRatingRequest(@NotNull Integer score, String comment) {}
-
-    // ── Response records ─────────────────────────────────────────────────────
 
     public record OrderSummaryResponse(String id, String title, String referenceCode, Order.Status status, boolean isUrgent, String deliveryCity, String deliveryState, Instant createdAt) {
         static OrderSummaryResponse from(Order order) {

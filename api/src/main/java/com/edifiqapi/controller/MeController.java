@@ -30,8 +30,22 @@ public class MeController {
         var user = userRepository.findByIdAndTenant_Id(userId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
 
-        return ApiResponse.of(new MeResponse(user, user.getEmail(), user.getTenant().getId(), user.getTenant().getSlug()));
+        return ApiResponse.of(new MeResponse(
+                "Bearer",
+                jwt.getTokenValue(),
+                user,
+                user.getEmail(),
+                user.getTenant().getId(),
+                user.getTenant().getSlug()
+        ));
     }
 
-    public record MeResponse(User user, String email, String tenantId, String tenantSlug) {}
+    public record MeResponse(
+            String tokenType,
+            String accessToken,
+            User user,
+            String email,
+            String tenantId,
+            String tenantSlug
+    ) {}
 }

@@ -37,6 +37,12 @@ public class UserRoleController {
         return ApiResponse.of(userRoleRepository.findAllByUser_Tenant_Id(tenantId).stream().map(UserRoleResponse::from).toList());
     }
 
+    @GetMapping("/user/{userId}")
+    public ApiResponse<List<UserRoleResponse>> findByUserId(@AuthenticationPrincipal Jwt jwt, @PathVariable String userId) {
+        String tenantId = JwtClaims.tenantId(jwt);
+        return ApiResponse.of(userRoleRepository.findAllByUser_IdAndUser_Tenant_Id(userId, tenantId).stream().map(UserRoleResponse::from).toList());
+    }
+
     @PostMapping
     public ApiResponse<UserRoleResponse> grant(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody GrantUserRoleRequest request) {
         String tenantId = JwtClaims.tenantId(jwt);
@@ -49,7 +55,10 @@ public class UserRoleController {
         var grantedBy = userRepository.findByIdAndTenant_Id(grantedById, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "grantedBy not found"));
 
-        UserRole userRole = new UserRole();
+        UserRole userRole = userRoleRepository
+                .findByUser_IdAndRole_IdAndUser_Tenant_Id(request.userId(), request.roleId(), tenantId)
+                .orElseGet(UserRole::new);
+
         userRole.setUser(user);
         userRole.setRole(role);
         userRole.setGrantedBy(grantedBy);
@@ -67,15 +76,22 @@ public class UserRoleController {
 
     public record GrantUserRoleRequest(@NotNull String userId, @NotNull String roleId) {}
 
-    public record UserRoleResponse(String id, String userId, String roleId, String grantedBy, Instant grantedAt) {
+    public record UserRoleResponse(String id, String userId, String roleId, RoleData role, String grantedBy, Instant grantedAt) {
         static UserRoleResponse from(UserRole userRole) {
             return new UserRoleResponse(
                     userRole.getId(),
                     userRole.getUser().getId(),
                     userRole.getRole().getId(),
+                    RoleData.from(userRole.getRole()),
                     userRole.getGrantedBy() != null ? userRole.getGrantedBy().getId() : null,
                     userRole.getGrantedAt()
             );
+        }
+    }
+
+    public record RoleData(String id, String name, List<String> permissions, boolean system) {
+        static RoleData from(com.edifiqapi.domain.rbac.Role role) {
+            return new RoleData(role.getId(), role.getName(), role.getPermissions(), role.isSystem());
         }
     }
 }

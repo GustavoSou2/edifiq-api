@@ -176,7 +176,11 @@ public class OrderFlowService {
 
         if (request.deliveryAddress() != null) order.setDeliveryAddress(request.deliveryAddress());
         if (request.deliveryCity()    != null) order.setDeliveryCity(request.deliveryCity());
-        if (request.deliveryState()   != null) order.setDeliveryState(request.deliveryState());
+        if (request.deliveryState()   != null) {
+            // delivery_state é CHAR(2) no banco — garante que nunca excede 2 chars
+            String state = request.deliveryState().trim();
+            order.setDeliveryState(state.length() > 2 ? state.substring(0, 2).toUpperCase() : state.toUpperCase());
+        }
         if (request.deliveryLat()     != null) order.setDeliveryLat(request.deliveryLat());
         if (request.deliveryLng()     != null) order.setDeliveryLng(request.deliveryLng());
         if (request.title()           != null) order.setTitle(request.title());

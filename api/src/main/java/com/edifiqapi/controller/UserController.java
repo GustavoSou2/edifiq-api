@@ -66,19 +66,20 @@ public class UserController {
         String tenantId = JwtClaims.tenantId(jwt);
         User user = userRepository.findByIdAndTenant_Id(id, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "user not found"));
-        if (request.active() != null) {
-            user.setActive(request.active());
-        }
+        if (request.active()    != null) user.setActive(request.active());
+        if (request.fullName()  != null && !request.fullName().isBlank()) user.setFullName(request.fullName().trim());
+        if (request.phone()     != null) user.setPhone(request.phone().isBlank() ? null : request.phone().trim());
+        user.setUpdatedAt(Instant.now());
         return ApiResponse.of(UserResponse.from(userRepository.save(user)));
     }
 
     public record CreateUserRequest(@Email @NotBlank String email, @NotBlank String password) {}
 
-    public record UpdateUserRequest(Boolean active) {}
+    public record UpdateUserRequest(Boolean active, String fullName, String phone) {}
 
-    public record UserResponse(String id, String email, boolean active, boolean emailVerified, Instant lastLoginAt) {
+    public record UserResponse(String id, String email, String fullName, String phone, boolean active, boolean emailVerified, Instant lastLoginAt, Instant createdAt) {
         static UserResponse from(User user) {
-            return new UserResponse(user.getId(), user.getEmail(), user.isActive(), user.isEmailVerified(), user.getLastLoginAt());
+            return new UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getPhone(), user.isActive(), user.isEmailVerified(), user.getLastLoginAt(), user.getCreatedAt());
         }
     }
 }

@@ -10,6 +10,8 @@ import java.util.Optional;
 @RepositoryRestResource(path = "user-roles")
 public interface UserRoleRepository extends JpaRepository<UserRole, String> {
     List<UserRole> findAllByUser_Tenant_Id(String tenantId);
+    List<UserRole> findAllByUser_IdAndUser_Tenant_Id(String userId, String tenantId);
+    Optional<UserRole> findByUser_IdAndRole_IdAndUser_Tenant_Id(String userId, String roleId, String tenantId);
 
     Optional<UserRole> findByIdAndUser_Tenant_Id(String id, String tenantId);
 }
