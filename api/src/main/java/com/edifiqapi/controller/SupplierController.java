@@ -1,6 +1,8 @@
 package com.edifiqapi.controller;
 
+import com.edifiqapi.domain.proposal.Proposal;
 import com.edifiqapi.domain.supplier.Supplier;
+import com.edifiqapi.repository.proposal.ProposalRepository;
 import com.edifiqapi.repository.supplier.SupplierRepository;
 import com.edifiqapi.repository.tenant.TenantRepository;
 import com.edifiqapi.security.JwtClaims;
@@ -22,10 +24,16 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class SupplierController {
     private final SupplierRepository supplierRepository;
     private final TenantRepository tenantRepository;
+    private final ProposalRepository proposalRepository;
 
-    public SupplierController(SupplierRepository supplierRepository, TenantRepository tenantRepository) {
+    public SupplierController(
+            SupplierRepository supplierRepository,
+            TenantRepository tenantRepository,
+            ProposalRepository proposalRepository
+    ) {
         this.supplierRepository = supplierRepository;
         this.tenantRepository = tenantRepository;
+        this.proposalRepository = proposalRepository;
     }
 
     @GetMapping
@@ -39,6 +47,20 @@ public class SupplierController {
         String tenantId = JwtClaims.tenantId(jwt);
         return ApiResponse.of(supplierRepository.findByIdAndTenant_Id(id, tenantId).map(SupplierResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found")));
+    }
+
+    @GetMapping("/{id}/proposals")
+    public ApiResponse<List<SupplierProposalResponse>> listProposals(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        String tenantId = JwtClaims.tenantId(jwt);
+        supplierRepository.findByIdAndTenant_Id(id, tenantId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "supplier not found"));
+
+        return ApiResponse.of(
+                proposalRepository.findAllByOrderDistribution_Supplier_IdAndOrderDistribution_SupplierTenant_Id(id, tenantId)
+                        .stream()
+                        .map(SupplierProposalResponse::from)
+                        .toList()
+        );
     }
 
     @PostMapping
@@ -121,6 +143,30 @@ public class SupplierController {
                     supplier.getPostalCode(),
                     supplier.isActive(),
                     supplier.getReputationScore()
+            );
+        }
+    }
+
+    public record SupplierProposalResponse(
+            String id,
+            String orderId,
+            String distributionId,
+            Proposal.Status status,
+            BigDecimal totalPrice,
+            Integer deliveryEtaHours,
+            java.time.Instant proposedDeliveryAt,
+            String message
+    ) {
+        static SupplierProposalResponse from(Proposal proposal) {
+            return new SupplierProposalResponse(
+                    proposal.getId(),
+                    proposal.getOrderDistribution().getOrder().getId(),
+                    proposal.getOrderDistribution().getId(),
+                    proposal.getStatus(),
+                    proposal.getTotalPrice(),
+                    proposal.getDeliveryEtaHours(),
+                    proposal.getProposedDeliveryAt(),
+                    proposal.getMessage()
             );
         }
     }

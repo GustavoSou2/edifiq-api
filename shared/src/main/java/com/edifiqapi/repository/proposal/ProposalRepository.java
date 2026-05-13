@@ -10,6 +10,7 @@ import java.util.Optional;
 @RepositoryRestResource(path = "proposals")
 public interface ProposalRepository extends JpaRepository<Proposal, String> {
     List<Proposal> findAllByOrderDistribution_Order_IdAndOrderDistribution_Order_Tenant_Id(String orderId, String tenantId);
+    List<Proposal> findAllByOrderDistribution_Supplier_IdAndOrderDistribution_SupplierTenant_Id(String supplierId, String supplierTenantId);
 
     Optional<Proposal> findByIdAndOrderDistribution_Order_Tenant_Id(String id, String tenantId);
 }

@@ -12,5 +12,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, String> {
     List<OrderItem> findAllByOrder_Id(String orderId);
 
     Optional<OrderItem> findByIdAndOrder_Tenant_Id(String id, String tenantId);
+
+    Optional<OrderItem> findByIdAndOrder_Id(String id, String orderId);
 }
 

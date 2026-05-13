@@ -2,6 +2,7 @@ package com.edifiqapi.domain.order;
 
 import com.edifiqapi.domain.BaseEntity;
 import com.edifiqapi.domain.supplier.Supplier;
+import com.edifiqapi.domain.tenant.Tenant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -34,6 +35,14 @@ public class OrderDistribution extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "buyer_tenant_id", nullable = false)
+    private Tenant buyerTenant;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "supplier_tenant_id", nullable = false)
+    private Tenant supplierTenant;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -68,6 +77,12 @@ public class OrderDistribution extends BaseEntity {
         if (distributedAt == null) {
             distributedAt = Instant.now();
         }
+        if (buyerTenant == null && order != null) {
+            buyerTenant = order.getTenant();
+        }
+        if (supplierTenant == null && supplier != null) {
+            supplierTenant = supplier.getTenant();
+        }
     }
 
     public Order getOrder() {
@@ -84,6 +99,22 @@ public class OrderDistribution extends BaseEntity {
 
     public void setSupplier(Supplier supplier) {
         this.supplier = supplier;
+    }
+
+    public Tenant getBuyerTenant() {
+        return buyerTenant;
+    }
+
+    public void setBuyerTenant(Tenant buyerTenant) {
+        this.buyerTenant = buyerTenant;
+    }
+
+    public Tenant getSupplierTenant() {
+        return supplierTenant;
+    }
+
+    public void setSupplierTenant(Tenant supplierTenant) {
+        this.supplierTenant = supplierTenant;
     }
 
     public Status getStatus() {

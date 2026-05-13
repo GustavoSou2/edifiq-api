@@ -212,8 +212,9 @@ public class OrderFlowService {
         order.setStatus(Order.Status.open);
         orderRepository.save(order);
 
-        List<Supplier> suppliers = supplierRepository.findAllByTenant_Id(tenantId).stream()
+        List<Supplier> suppliers = supplierRepository.findAll().stream()
                 .filter(Supplier::isActive)
+                .filter(s -> !tenantId.equals(s.getTenant().getId()))
                 .toList();
 
         List<Supplier> topSuppliers = rankSuppliers(order, suppliers);
@@ -224,6 +225,8 @@ public class OrderFlowService {
             OrderDistribution distribution = new OrderDistribution();
             distribution.setOrder(order);
             distribution.setSupplier(supplier);
+            distribution.setBuyerTenant(order.getTenant());
+            distribution.setSupplierTenant(supplier.getTenant());
             distribution.setStatus(OrderDistribution.Status.pending);
             distributions.add(orderDistributionRepository.save(distribution));
         }
@@ -237,7 +240,7 @@ public class OrderFlowService {
 
     @Transactional
     public Proposal submitProposal(String tenantId, String distributionId, Proposal.Status status, Integer deliveryEtaHours, Instant proposedDeliveryAt, String message, List<CreateProposalItem> items) {
-        OrderDistribution distribution = orderDistributionRepository.findByIdAndOrder_Tenant_Id(distributionId, tenantId)
+        OrderDistribution distribution = orderDistributionRepository.findByIdAndSupplierTenant_Id(distributionId, tenantId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "distribution not found"));
 
         BigDecimal total = BigDecimal.ZERO;
@@ -255,7 +258,7 @@ public class OrderFlowService {
         proposal = proposalRepository.save(proposal);
 
         for (CreateProposalItem item : items) {
-            OrderItem orderItem = orderItemRepository.findByIdAndOrder_Tenant_Id(item.orderItemId(), tenantId)
+            OrderItem orderItem = orderItemRepository.findByIdAndOrder_Id(item.orderItemId(), distribution.getOrder().getId())
                     .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "order item not found: " + item.orderItemId()));
 
             ProposalItem proposalItem = new ProposalItem();

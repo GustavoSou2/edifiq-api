@@ -26,6 +26,7 @@ public class SecurityConfig {
         http
             .securityMatcher(
                 "/v1/auth/**",
+                "/v1/users/invites/confirm",
                 "/v3/api-docs/**",
                 "/swagger-ui.html",
                 "/swagger-ui/**",

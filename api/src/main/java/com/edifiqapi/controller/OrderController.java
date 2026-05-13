@@ -141,7 +141,7 @@ public class OrderController {
     @GetMapping("/{id}/distributions")
     public ApiResponse<List<OrderDistributionResponse>> distributions(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         String tenantId = JwtClaims.tenantId(jwt);
-        return ApiResponse.of(orderDistributionRepository.findAllByOrder_IdAndOrder_Tenant_Id(id, tenantId).stream()
+        return ApiResponse.of(orderDistributionRepository.findAllByOrder_IdAndBuyerTenant_Id(id, tenantId).stream()
                 .map(OrderDistributionResponse::from).toList());
     }
 
@@ -250,9 +250,9 @@ public class OrderController {
 
     public record CreateRatingRequest(@NotNull Integer score, String comment) {}
 
-    public record OrderSummaryResponse(String id, String title, String referenceCode, Order.Status status, boolean isUrgent, String deliveryCity, String deliveryState, Instant createdAt) {
+    public record OrderSummaryResponse(String id, String title, String referenceCode, Order.Status status, boolean isUrgent, String deliveryCity, String deliveryState, Instant createdAt, Double deliveryLat, Double deliveryLng) {
         static OrderSummaryResponse from(Order order) {
-            return new OrderSummaryResponse(order.getId(), order.getTitle(), order.getReferenceCode(), order.getStatus(), order.isUrgent(), order.getDeliveryCity(), order.getDeliveryState(), order.getCreatedAt());
+            return new OrderSummaryResponse(order.getId(), order.getTitle(), order.getReferenceCode(), order.getStatus(), order.isUrgent(), order.getDeliveryCity(), order.getDeliveryState(), order.getCreatedAt(), order.getDeliveryLat(), order.getDeliveryLng());
         }
     }
 

@@ -1,7 +1,9 @@
 package com.edifiqapi.controller;
 
+import com.edifiqapi.domain.order.OrderDistribution;
 import com.edifiqapi.domain.proposal.Proposal;
 import com.edifiqapi.domain.proposal.ProposalItem;
+import com.edifiqapi.repository.order.OrderDistributionRepository;
 import com.edifiqapi.security.JwtClaims;
 import com.edifiqapi.service.OrderFlowService;
 import com.edifiqapi.web.ApiResponse;
@@ -19,9 +21,24 @@ import java.util.List;
 @RequestMapping("/v1")
 public class ProposalController {
     private final OrderFlowService orderFlowService;
+    private final OrderDistributionRepository orderDistributionRepository;
 
-    public ProposalController(OrderFlowService orderFlowService) {
+    public ProposalController(
+            OrderFlowService orderFlowService,
+            OrderDistributionRepository orderDistributionRepository
+    ) {
         this.orderFlowService = orderFlowService;
+        this.orderDistributionRepository = orderDistributionRepository;
+    }
+
+    @GetMapping("/distributions/received")
+    public ApiResponse<List<DistributionResponse>> received(@AuthenticationPrincipal Jwt jwt) {
+        String tenantId = JwtClaims.tenantId(jwt);
+        return ApiResponse.of(
+                orderDistributionRepository.findAllBySupplierTenant_Id(tenantId).stream()
+                        .map(DistributionResponse::from)
+                        .toList()
+        );
     }
 
     @PostMapping("/distributions/{distributionId}/proposals")
@@ -79,6 +96,28 @@ public class ProposalController {
                     proposal.getDeliveryEtaHours(),
                     proposal.getProposedDeliveryAt(),
                     proposal.getMessage()
+            );
+        }
+    }
+
+    public record DistributionResponse(
+            String id,
+            String orderId,
+            String supplierId,
+            String buyerTenantId,
+            String supplierTenantId,
+            OrderDistribution.Status status,
+            Instant distributedAt
+    ) {
+        static DistributionResponse from(OrderDistribution distribution) {
+            return new DistributionResponse(
+                    distribution.getId(),
+                    distribution.getOrder().getId(),
+                    distribution.getSupplier().getId(),
+                    distribution.getBuyerTenant().getId(),
+                    distribution.getSupplierTenant().getId(),
+                    distribution.getStatus(),
+                    distribution.getDistributedAt()
             );
         }
     }
